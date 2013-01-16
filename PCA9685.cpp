@@ -21,13 +21,22 @@ PCA9685::PCA9685() {}
 void PCA9685::begin(int i2cAddress) {
 	_i2cAddress = PCA9685_I2C_BASE_ADDRESS | (i2cAddress & B00111111);
 }
+bool PCA9685::init() {
 
-void PCA9685::init() {
 	delay(1);
 	writeRegister(PCA9685_MODE1, (byte)0x01);	// reset the device
+
 	delay(1);
-	writeRegister(PCA9685_MODE1, (byte)0xa1);	// set up for auto increment
+	bool isOnline;
+	if (readRegister(PCA9685_MODE1)==0x01)	{
+		isOnline = true;
+	} else {
+		isOnline = false;
+	}
+	writeRegister(PCA9685_MODE1, (byte)B10100000);	// set up for auto increment
 	writeRegister(PCA9685_MODE2, (byte)0x10);	// set to output
+	
+	return isOnline;
 }
 
 void PCA9685::setLEDOn(int ledNumber) {
@@ -71,4 +80,26 @@ void PCA9685::writeRegister(int regAddress, byte data) {
 	Wire.write(regAddress);
 	Wire.write(data);
 	Wire.endTransmission();
+}
+
+word PCA9685::readRegister(int regAddress) {
+	word returnword = 0x00;
+	Wire.beginTransmission(_i2cAddress);
+	Wire.write(regAddress);
+	Wire.endTransmission();
+	Wire.requestFrom((int)_i2cAddress, 1);
+    
+//    int c=0;
+	//Wait for our 2 bytes to become available
+	while (Wire.available()) {
+        //high byte
+//        if (c==0)   { returnword = Wire.read() << 8; }
+        //low byte
+  //      if (c==1)   { 
+		returnword |= Wire.read(); 
+		//}
+        //c++;
+    }
+    
+	return returnword;
 }

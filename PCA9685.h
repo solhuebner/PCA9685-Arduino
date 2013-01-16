@@ -45,7 +45,7 @@ class PCA9685
     //so i2cAddress should be between 0 and 63
     PCA9685();
     void begin(int i2cAddress);
-    void init();
+    bool init();
 
 	void setLEDOn(int ledNumber);
 	void setLEDOff(int ledNumber);
@@ -54,7 +54,7 @@ class PCA9685
 	
   private:
 	void writeRegister(int regaddress, byte val);
-
+	word readRegister(int regAddress);
 	// Our actual i2c address:
 	byte _i2cAddress;
 };
