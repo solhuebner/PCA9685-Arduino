@@ -35,6 +35,10 @@
 #define PCA9685_MODE2 0x01 // location for Mode2 reigster address
 #define PCA9685_LED0 0x06 // location for start of LED0 registers
 
+#define PCA9685_MODE_INVRT 0x10
+#define PCA9685_MODE_OUTPUT_ON_ACK 0x08
+#define PCA9685_MODE_OUTPUT_POLE 0x04
+
 #define PCA9685_CH_ON 4096 
 #define PCA9685_CH_OFF 0
 #define PCA9685_PWM_FULL 0x1000 
@@ -47,9 +51,9 @@ class PCA9685
     //NB the i2c address here is the value of the A0, A1, A2, A3, A4 and A5 pins ONLY
     //as the class takes care of its internal base address.
     //so i2cAddress should be between 0 and 63
-    PCA9685();
+	PCA9685(){}
     void begin(int i2cAddress);
-    bool init();
+    bool init(byte mode = PCA9685_MODE_INVRT | PCA9685_MODE_OUTPUT_ON_ACK | PCA9685_MODE_OUTPUT_POLE);
 
   void on(int nr);
   void off(int nr);

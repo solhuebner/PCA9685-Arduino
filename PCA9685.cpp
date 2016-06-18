@@ -19,7 +19,7 @@
 void PCA9685::begin(int i2cAddress) {
   _i2cAddress = PCA9685_I2C_BASE_ADDRESS | (i2cAddress & B00111111);
 }
-bool PCA9685::init() {
+bool PCA9685::init(byte mode) {
 
   delay(1);
   writeRegister(PCA9685_MODE1, (byte)0x01); // reset the device
