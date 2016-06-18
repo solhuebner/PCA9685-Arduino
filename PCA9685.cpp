@@ -49,10 +49,10 @@ void PCA9685::setChannel(int nr, word amount) {    // Amount from 0-100 (off-on)
   word onval = 0, offval = 0;
   if (amount==PCA9685_CH_OFF){
     onval = 0;
-    offval = 0x1000;
+    offval = PCA9685_PWM_FULL;
   }
   else if (amount>=PCA9685_CH_ON){
-    onval = 0x1000;
+    onval = PCA9685_PWM_FULL;
     offval = 0;
   } 
   else {
