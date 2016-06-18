@@ -27,13 +27,17 @@
 
 /**
   Version 1.0.0
-	(Semantic Versioning)
+  (Semantic Versioning)
 **/
  
 //Register defines from data sheet
 #define PCA9685_MODE1 0x00 // location for Mode1 register address
 #define PCA9685_MODE2 0x01 // location for Mode2 reigster address
 #define PCA9685_LED0 0x06 // location for start of LED0 registers
+
+#define PCA9685_CH_ON 4096 
+#define PCA9685_CH_OFF 0
+#define PCA9685_PWM_FULL 0x1000 
 
 #define PCA9685_I2C_BASE_ADDRESS B1000000
 
@@ -47,15 +51,19 @@ class PCA9685
     void begin(int i2cAddress);
     bool init();
 
-	void setLEDOn(int ledNumber);
-	void setLEDOff(int ledNumber);
-	void setLEDDimmed(int ledNumber, byte amount);
-	void writeLED(int ledNumber, word outputStart, word outputEnd);
-	
+  void on(int nr);
+  void off(int nr);
+  // 0: instant OFF(0) 
+  // 4096: instant ON(1) 
+  // 1 - 4095: duty sicle
+  void setChannel(int nr, uint16_t amount);
+  void setChannel(byte startch, byte count, word* amount);
+  
   private:
-	void writeRegister(int regaddress, byte val);
-	word readRegister(int regAddress);
-	// Our actual i2c address:
-	byte _i2cAddress;
+  void writeChannel(int nr, word outputStart, word outputEnd);
+  void writeRegister(int regaddress, byte val);
+  word readRegister(int regAddress);
+  // Our actual i2c address:
+  byte _i2cAddress;
 };
 #endif 
