@@ -19,58 +19,65 @@
 void PCA9685::begin(int i2cAddress) {
   _i2cAddress = PCA9685_I2C_BASE_ADDRESS | (i2cAddress & B00111111);
 }
-bool PCA9685::init(byte mode) {
 
-  delay(1);
-  writeRegister(PCA9685_MODE1, (byte)0x01); // reset the device
+void PCA9685::init(byte mode) {
+  //Reset SWRST
+  Wire.beginTransmission(0);
+  Wire.write((byte)0x06);
+  Wire.endTransmission();
+  //Init
+  Wire.beginTransmission(_i2cAddress);
+  Wire.write(PCA9685_MODE1);
+  Wire.write(0b00100000); //Autoincrement
+  Wire.write(mode);
+  Wire.endTransmission();
+}
 
-  delay(1);
-  bool isOnline;
-  if (readRegister(PCA9685_MODE1)==0x01)  {
-    isOnline = true;
-  } else {
-    isOnline = false;
-  }
-  writeRegister(PCA9685_MODE1, (byte)B10100000);  // set up for auto increment
-  writeRegister(PCA9685_MODE2, (byte)0x10); // set to output
-  
-  return isOnline;
+void PCA9685::setPwmFrequency(int hz){
+  uint32_t val = 6104L / (uint32_t)hz;
+  if(val > 255)val = 255;
+  if(val < 3)val = 3;
+  Wire.beginTransmission(_i2cAddress);
+  Wire.write(PCA9685_PRE_SCALE);
+  Wire.write((byte)val);
+  Wire.endTransmission();
 }
 
 void PCA9685::on(int nr) {
-  writeChannel(nr, PCA9685_PWM_FULL, 0);
+  writeChBegin(nr);
+  writeChannel(PCA9685_PWM_FULL, 0);
+  writeEnd();
 }
 
 void PCA9685::off(int nr) {
-  writeChannel(nr, 0, PCA9685_PWM_FULL);
+  writeChBegin(nr);
+  writeChannel(0, PCA9685_PWM_FULL);
+  writeEnd();
 }
 
-void PCA9685::setChannel(int nr, word amount) {    // Amount from 0-100 (off-on)
-  word onval = 0, offval = 0;
+void PCA9685::setChannel(byte nr, word amount) {    // Amount from 0-100 (off-on)
+  writeChBegin(nr);
   if (amount==PCA9685_CH_OFF){
-    onval = 0;
-    offval = PCA9685_PWM_FULL;
+    writeChannel(0, PCA9685_PWM_FULL);
   }
   else if (amount>=PCA9685_CH_ON){
-    onval = PCA9685_PWM_FULL;
-    offval = 0;
+    writeChannel(PCA9685_PWM_FULL, 0);
   } 
   else {
     //int randNumber = (int)random(4096); // Randomize the phaseshift to distribute load. Good idea? Hope so.
     word phase = (4096 / 16) * nr;
-    onval = phase;
-    offval = (amount+phase) & 0xFFF;
+    writeChannel(phase, (amount+phase) & 0xFFF);
   }
-  
-  writeChannel(nr, onval, offval);
+  writeEnd();
 }
 
-void PCA9685::setChannel(byte startch, byte count, word* amount) {    // Amount from 0-100 (off-on)
-  Wire.beginTransmission(_i2cAddress);
-  Wire.write(PCA9685_LED0 + 4*startch);
-  for(byte i = 0; i < count; i ++){
-    byte nr = startch+i;
-    word onval = 0, offval = 0;
+// IN:avr/libraries/Wire.h 
+//    avr/libraries/utility/twi.h
+//  BUFFER_LENGTH should be increased to 64 + 2 at least, default is 32 so only 7 lines could be written in one transaction
+void PCA9685::setChannel(byte startch, byte count, const word* amount) {    // Amount from 0-100 (off-on)
+  writeChBegin(startch);
+  word onval = 0, offval = 0;
+  for(byte i = 0; i < count; i++){
     if (amount[i]==PCA9685_CH_OFF){
       onval = 0;
       offval = PCA9685_PWM_FULL;
@@ -81,54 +88,30 @@ void PCA9685::setChannel(byte startch, byte count, word* amount) {    // Amount 
     } 
     else {
       //int randNumber = (int)random(4096); // Randomize the phaseshift to distribute load. Good idea? Hope so.
+      byte nr = startch+i;
       word phase = (4096 / 16) * nr;
       onval = phase;
       offval = (amount[i]+phase) & 0xFFF;
     }
-    
-    Wire.write(lowByte(onval));
-    Wire.write(highByte(onval));
-    Wire.write(lowByte(offval));
-    Wire.write(highByte(offval));
+    writeChannel(onval, offval);
   }
-  Wire.endTransmission();
+  writeEnd();
 }
 
-void PCA9685::writeChannel(int ledNumber, word LED_ON, word LED_OFF) {  // LED_ON and LED_OFF are 12bit values (0-4095); ledNumber is 0-15
-  if (ledNumber >=0 && ledNumber <= 15) {
-    
+void PCA9685::writeChBegin(int nr) {  // LED_ON and LED_OFF are 12bit values (0-4095); ledNumber is 0-15
+    byte addr = PCA9685_LED0 + 4*nr;
     Wire.beginTransmission(_i2cAddress);
-    Wire.write(PCA9685_LED0 + 4*ledNumber);
+    Wire.write(addr);
+}
 
+void PCA9685::writeEnd() {  // LED_ON and LED_OFF are 12bit values (0-4095); ledNumber is 0-15
+    Wire.endTransmission();
+}
+
+void PCA9685::writeChannel(word LED_ON, word LED_OFF) {  // LED_ON and LED_OFF are 12bit values (0-4095); ledNumber is 0-15
     Wire.write(lowByte(LED_ON));
     Wire.write(highByte(LED_ON));
     Wire.write(lowByte(LED_OFF));
     Wire.write(highByte(LED_OFF));
-    
-    Wire.endTransmission();
-  }
 }
 
-
-//PRIVATE
-void PCA9685::writeRegister(int regAddress, byte data) {
-  Wire.beginTransmission(_i2cAddress);
-  Wire.write(regAddress);
-  Wire.write(data);
-  Wire.endTransmission();
-}
-
-word PCA9685::readRegister(int regAddress) {
-  word returnword = 0x00;
-  Wire.beginTransmission(_i2cAddress);
-  Wire.write(regAddress);
-  Wire.endTransmission();
-  Wire.requestFrom((int)_i2cAddress, 1);
-    
-//    int c=0;
-  while (Wire.available()) {
-    returnword |= Wire.read(); 
-  }
-    
-  return returnword;
-}
