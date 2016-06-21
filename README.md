@@ -2,7 +2,7 @@
 Arduino Library for the PCA9685 LED Driver chip
 
 ## Example
-```c
+```Arduino
 #include "PCA9685.h"
 
 PCA9685 pwmDriver; 
