@@ -60,11 +60,11 @@
 #include <Wire.h>
 #endif
 
-#define PCA9685_MODE_INVRT          (byte)0x10  // Inverts polarity of channel output signal
-#define PCA9685_MODE_OUTPUT_ONACK   (byte)0x08  // Channel update happens upon ACK (post-set) rather than on STOP (endTransmission)
-#define PCA9685_MODE_OUTPUT_TPOLE   (byte)0x04  // Use a totem-pole (push-pull) style output, typical for boards using this chipset
-#define PCA9685_MODE_OUTNE_HIGHZ    (byte)0x02  // For active low output enable, sets channel output to high-impedance state
-#define PCA9685_MODE_OUTNE_LOW      (byte)0x01  // Similarly, sets channel output to high if in totem-pole mode, otherwise high-impedance state
+#define PCA9685_MODE_INVRT          (uint8_t)0x10  // Inverts polarity of channel output signal
+#define PCA9685_MODE_OUTPUT_ONACK   (uint8_t)0x08  // Channel update happens upon ACK (post-set) rather than on STOP (endTransmission)
+#define PCA9685_MODE_OUTPUT_TPOLE   (uint8_t)0x04  // Use a totem-pole (push-pull) style output, typical for boards using this chipset
+#define PCA9685_MODE_OUTNE_HIGHZ    (uint8_t)0x02  // For active low output enable, sets channel output to high-impedance state
+#define PCA9685_MODE_OUTNE_LOW      (uint8_t)0x01  // Similarly, sets channel output to high if in totem-pole mode, otherwise high-impedance state
 
 #define PCA9685_MIN_CHANNEL         0
 #define PCA9685_MAX_CHANNEL         15
@@ -85,8 +85,8 @@ public:
     // Supported i2c baud rates are 100kHz, 400kHz, and 1000kHz.
     PCA9685(TwoWire& i2cWire = Wire, PCA9685_PhaseBalancer phaseBalancer = PCA9685_PhaseBalancer_Weaved);
 #else
-    // Minimum supported baud rate is 100kHz, which means minimum supported processor
-    // speed is 4MHz+ while running i2c standard mode. For 400kHz baud rate, minimum
+    // Minimum supported i2c baud rate is 100kHz, which means minimum supported processor
+    // speed is 4MHz+ while running i2c standard mode. For 400kHz i2c baud rate, minimum
     // supported processor speed is 16MHz+ while running i2c fast mode.
     PCA9685(PCA9685_PhaseBalancer phaseBalancer = PCA9685_PhaseBalancer_Weaved);
 #endif
@@ -97,14 +97,16 @@ public:
     // and reuploading to ensure all the devices on that line are reset properly.
     void resetDevices();
 
-    // The i2c address here is the value of the A0, A1, A2, A3, A4 and A5 pins ONLY,
-    // as the class takes care of its internal base address. i2cAddress should be a
-    // value between 0 and 61, since only 62 boards can be addressed.
-    void init(byte i2cAddress = 0, byte mode = PCA9685_MODE_OUTPUT_ONACK | PCA9685_MODE_OUTPUT_TPOLE);
+    // Called in setup(). The i2c address here is the value of the A0, A1, A2, A3, A4 and
+    // A5 pins ONLY, as the class takes care of its internal base address. i2cAddress
+    // should be a value between 0 and 61, since only 62 boards can be addressed.
+    void init(uint8_t i2cAddress = 0, uint8_t mode = PCA9685_MODE_OUTPUT_ONACK | PCA9685_MODE_OUTPUT_TPOLE);
 
 #ifndef PCA9685_EXCLUDE_EXT_FUNC
-    // Used when instance talks through to AllCall/Sub1-Sub3 instances as a proxy
-    void initAsProxyAddresser(byte i2cAddress = 0xE0);
+    // Called in setup(). Used when instance talks through to AllCall/Sub1-Sub3 instances
+    // as a proxy object. Using this method will disable any method that performs a read
+    // or conflicts certain states.
+    void initAsProxyAddresser(uint8_t i2cAddress = 0xE0);
 #endif
 
     // Min: 24Hz, Max: 1526Hz, Default: 200Hz (resolution widens as Hz goes higher)
@@ -115,23 +117,23 @@ public:
     void setChannelOff(int channel);
 
     // PWM amounts 0 - 4096, 0 full off, 4096 full on
-    void setChannelPWM(int channel, word pwmAmount);
+    void setChannelPWM(int channel, uint16_t pwmAmount);
     // Max of 7 channels can be batched at once
-    void setChannelsPWM(int startChannel, int count, const word *pwmAmounts);
+    void setChannelsPWM(int startChannel, int count, const uint16_t *pwmAmounts);
 
 #ifndef PCA9685_EXCLUDE_EXT_FUNC
     // Sets all channels, but won't distribute phases
-    void setAllChannelsPWM(word pwmAmount);
+    void setAllChannelsPWM(uint16_t pwmAmount);
 
     // Returns PWM amounts 0 - 4096, 0 full off, 4096 full on
-    word getChannelPWM(int channel);
+    uint16_t getChannelPWM(int channel);
 
     // Enables multiple talk-through paths via i2c bus (lsb/bit0 must stay 0)
     // To use, create a new class instance using initAsSubAddressed() with said address
-    void enableAllCallAddress(byte i2cAddress = 0xE0);
-    void enableSub1Address(byte i2cAddress = 0xE2);
-    void enableSub2Address(byte i2cAddress = 0xE4);
-    void enableSub3Address(byte i2cAddress = 0xE8);
+    void enableAllCallAddress(uint8_t i2cAddress = 0xE0);
+    void enableSub1Address(uint8_t i2cAddress = 0xE2);
+    void enableSub2Address(uint8_t i2cAddress = 0xE4);
+    void enableSub3Address(uint8_t i2cAddress = 0xE8);
     void disableAllCallAddress();
     void disableSub1Address();
     void disableSub2Address();
@@ -143,20 +145,20 @@ public:
 
 private:
 #ifndef PCA9685_USE_SOFTWARE_I2C
-    TwoWire *_i2cWire;      // Wire class instance to use
+    TwoWire *_i2cWire;          // Wire class instance to use
 #endif
-    byte _i2cAddress;       // Module's i2c address
+    uint8_t _i2cAddress;        // Module's i2c address
     PCA9685_PhaseBalancer _phaseBalancer; // Phase balancer scheme to distribute load
-    bool _isProxyAddresser; // Instance is a proxy for sub addressing (disables certain functionality)
+    bool _isProxyAddresser;     // Instance is a proxy for sub addressing (disables certain functionality)
 
-    void getPhaseCycle(int channel, word pwmAmount, word *phaseBegin, word *phaseEnd);
+    void getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
 
     void writeChannelBegin(int channel);
     void writeChannelEnd();
-    void writeChannelPWM(word phaseBegin, word phaseEnd);
+    void writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
 
-    void writeRegister(byte regAddress, byte value);
-    byte readRegister(byte regAddress);
+    void writeRegister(uint8_t regAddress, uint8_t value);
+    uint8_t readRegister(uint8_t regAddress);
 
 #ifdef PCA9685_USE_SOFTWARE_I2C
     uint8_t _readBytes;
@@ -175,17 +177,17 @@ class PCA9685_ServoEvaluator {
 public:
     // Uses a linear interpolation method to quickly compute PWM output value. Uses
     // default values of 2.5% and 12.5% of phase length for -90/+90.
-    PCA9685_ServoEvaluator(word n90PWMAmount = 102, word p90PWMAmount = 512);
+    PCA9685_ServoEvaluator(uint16_t n90PWMAmount = 102, uint16_t p90PWMAmount = 512);
 
     // Uses a cubic spline to interpolate due to an offsetted zero angle that isn't
     // exactly between -90/+90. This takes more time to compute, but gives a more
     // accurate PWM output value along the entire range.
-    PCA9685_ServoEvaluator(word n90PWMAmount, word zeroPWMAmount, word p90PWMAmount);
+    PCA9685_ServoEvaluator(uint16_t n90PWMAmount, uint16_t zeroPWMAmount, uint16_t p90PWMAmount);
 
     ~PCA9685_ServoEvaluator();
 
     // Returns the PWM value to use given the angle (-90 to +90)
-    word pwmForAngle(float angle);
+    uint16_t pwmForAngle(float angle);
 
 private:
     float *_coeff;      // a,b,c,d coefficient values
