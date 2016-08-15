@@ -56,8 +56,8 @@
 static word phaseDistTable[16] = { 0, 2048, 1024, 3072, 512, 3584, 1536, 2560, 256, 3840, 1280, 2304, 3328, 768, 2816, 1792 };
 
 #ifndef PCA9685_USE_SOFTWARE_I2C
-PCA9685::PCA9685(TwoWire& wire, PCA9685_PhaseBalancer phaseBalancer) {
-    _wire = &wire;
+PCA9685::PCA9685(TwoWire& i2cWire, PCA9685_PhaseBalancer phaseBalancer) {
+    _i2cWire = &i2cWire;
 #else
 PCA9685::PCA9685(PCA9685_PhaseBalancer phaseBalancer) {
 #endif
@@ -71,9 +71,9 @@ void PCA9685::resetDevices() {
     Serial.println("PCA9685::resetDevices");
 #endif
 
-    wire_beginTransmission(0x00);
-    wire_write(PCA9685_SW_RESET);
-    wire_endTransmission();
+    i2cWire_beginTransmission(0x00);
+    i2cWire_write(PCA9685_SW_RESET);
+    i2cWire_endTransmission();
 
     delayMicroseconds(10);
 }
@@ -227,11 +227,11 @@ word PCA9685::getChannelPWM(int channel) {
     Serial.println(regAddress, HEX);
 #endif
 
-    wire_beginTransmission(_i2cAddress);
-    wire_write(regAddress);
-    wire_endTransmission();
+    i2cWire_beginTransmission(_i2cAddress);
+    i2cWire_write(regAddress);
+    i2cWire_endTransmission();
 
-    byte retBytes = wire_requestFrom((uint8_t)_i2cAddress, (uint8_t)4);
+    byte retBytes = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)4);
     if (retBytes != 4) {
 #ifdef PCA9685_DEBUG_OUTPUT
         Serial.println("  PCA9685::getChannelPWM Read request data not available. Aborting.");
@@ -239,10 +239,10 @@ word PCA9685::getChannelPWM(int channel) {
         return 0;
     }
 
-    word phaseBegin = wire_read();
-    phaseBegin |= wire_read() << 8;
-    word phaseEnd = wire_read();
-    phaseEnd |= wire_read() << 8;
+    word phaseBegin = i2cWire_read();
+    phaseBegin |= i2cWire_read() << 8;
+    word phaseEnd = i2cWire_read();
+    phaseEnd |= i2cWire_read() << 8;
 
 #ifdef PCA9685_DEBUG_OUTPUT
     Serial.print("  PCA9685::getChannelPWM phaseBegin: ");
@@ -436,12 +436,12 @@ void PCA9685::writeChannelBegin(int channel) {
     Serial.println(regAddress, HEX);
 #endif
 
-    wire_beginTransmission(_i2cAddress);
-    wire_write(regAddress);
+    i2cWire_beginTransmission(_i2cAddress);
+    i2cWire_write(regAddress);
 }
 
 void PCA9685::writeChannelEnd() {
-    byte retStat = wire_endTransmission();
+    byte retStat = i2cWire_endTransmission();
 
 #ifdef PCA9685_DEBUG_OUTPUT
     Serial.print("  PCA9685::writeChannelEnd retStat: ");
@@ -457,10 +457,10 @@ void PCA9685::writeChannelPWM(word phaseBegin, word phaseEnd) {
     Serial.println(phaseEnd);
 #endif
 
-    wire_write(lowByte(phaseBegin));
-    wire_write(highByte(phaseBegin));
-    wire_write(lowByte(phaseEnd));
-    wire_write(highByte(phaseEnd));
+    i2cWire_write(lowByte(phaseBegin));
+    i2cWire_write(highByte(phaseBegin));
+    i2cWire_write(lowByte(phaseEnd));
+    i2cWire_write(highByte(phaseEnd));
 }
 
 void PCA9685::writeRegister(byte regAddress, byte value) {
@@ -471,10 +471,10 @@ void PCA9685::writeRegister(byte regAddress, byte value) {
     Serial.println(value, HEX);
 #endif
 
-    wire_beginTransmission(_i2cAddress);
-    wire_write(regAddress);
-    wire_write(value);
-    byte retStat = wire_endTransmission();
+    i2cWire_beginTransmission(_i2cAddress);
+    i2cWire_write(regAddress);
+    i2cWire_write(value);
+    byte retStat = i2cWire_endTransmission();
 
 #ifdef PCA9685_DEBUG_OUTPUT
     Serial.print("    PCA9685::writeRegister retStat: ");
@@ -488,11 +488,11 @@ byte PCA9685::readRegister(byte regAddress) {
     Serial.println(regAddress, HEX);
 #endif
 
-    wire_beginTransmission(_i2cAddress);
-    wire_write(regAddress);
-    wire_endTransmission();
+    i2cWire_beginTransmission(_i2cAddress);
+    i2cWire_write(regAddress);
+    i2cWire_endTransmission();
 
-    byte retBytes = wire_requestFrom((uint8_t)_i2cAddress, (uint8_t)1);
+    byte retBytes = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)1);
     if (retBytes != 1) {
 #ifdef PCA9685_DEBUG_OUTPUT
         Serial.println("    PCA9685::readRegister Read request data not available. Aborting.");
@@ -500,7 +500,7 @@ byte PCA9685::readRegister(byte regAddress) {
         return 0;
     }
 
-    byte retVal = wire_read();
+    byte retVal = i2cWire_read();
 
 #ifdef PCA9685_DEBUG_OUTPUT
     Serial.print("    PCA9685::readRegister retVal: 0x");
@@ -517,43 +517,43 @@ bool __attribute__((noinline)) i2c_write(uint8_t value) asm("ass_i2c_write");
 uint8_t __attribute__((noinline)) i2c_read(bool last);
 #endif
 
-void PCA9685::wire_beginTransmission(uint8_t addr) {
+void PCA9685::i2cWire_beginTransmission(uint8_t addr) {
 #ifndef PCA9685_USE_SOFTWARE_I2C
-    _wire->beginTransmission(addr);
+    _i2cWire->beginTransmission(addr);
 #else
     i2c_start(addr);
 #endif
 }
 
-uint8_t PCA9685::wire_endTransmission(void) {
+uint8_t PCA9685::i2cWire_endTransmission(void) {
 #ifndef PCA9685_USE_SOFTWARE_I2C
-    return _wire->endTransmission();
+    return _i2cWire->endTransmission();
 #else
     i2c_stop();
     return 0;
 #endif
 }
 
-uint8_t PCA9685::wire_requestFrom(uint8_t addr, uint8_t len) {
+uint8_t PCA9685::i2cWire_requestFrom(uint8_t addr, uint8_t len) {
 #ifndef PCA9685_USE_SOFTWARE_I2C
-    return _wire->requestFrom(addr, len);
+    return _i2cWire->requestFrom(addr, len);
 #else
     i2c_start(addr | 0x01);
     return (_readBytes = len);
 #endif
 }
 
-size_t PCA9685::wire_write(uint8_t data) {
+size_t PCA9685::i2cWire_write(uint8_t data) {
 #ifndef PCA9685_USE_SOFTWARE_I2C
-    return _wire->write(data);
+    return _i2cWire->write(data);
 #else
     return (size_t)i2c_write(data);
 #endif
 }
 
-int PCA9685::wire_read(void) {
+int PCA9685::i2cWire_read(void) {
 #ifndef PCA9685_USE_SOFTWARE_I2C
-    return _wire->read();
+    return _i2cWire->read();
 #else
     if (_readBytes > 1)
         return (int)i2c_read(_readBytes--);

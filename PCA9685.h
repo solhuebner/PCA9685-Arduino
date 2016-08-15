@@ -77,14 +77,13 @@ typedef enum {
     PCA9685_PhaseBalancer_Count
 } PCA9685_PhaseBalancer;
 
-class PCA9685
-{
+class PCA9685 {
 public:
 #ifndef PCA9685_USE_SOFTWARE_I2C
     // May use a different Wire instance than Wire. Some chipsets, such as Due/Zero/etc.,
     // have a Wire1 class instance that uses the SDA1/SCL1 lines instead.
-    // Supported baud rates are 100kHz, 400kHz, and 1000kHz.
-    PCA9685(TwoWire& wire = Wire, PCA9685_PhaseBalancer phaseBalancer = PCA9685_PhaseBalancer_Weaved);
+    // Supported i2c baud rates are 100kHz, 400kHz, and 1000kHz.
+    PCA9685(TwoWire& i2cWire = Wire, PCA9685_PhaseBalancer phaseBalancer = PCA9685_PhaseBalancer_Weaved);
 #else
     // Minimum supported baud rate is 100kHz, which means minimum supported processor
     // speed is 4MHz+ while running i2c standard mode. For 400kHz baud rate, minimum
@@ -144,7 +143,7 @@ public:
 
 private:
 #ifndef PCA9685_USE_SOFTWARE_I2C
-    TwoWire *_wire;         // Wire class instance to use
+    TwoWire *_i2cWire;      // Wire class instance to use
 #endif
     byte _i2cAddress;       // Module's i2c address
     PCA9685_PhaseBalancer _phaseBalancer; // Phase balancer scheme to distribute load
@@ -162,11 +161,11 @@ private:
 #ifdef PCA9685_USE_SOFTWARE_I2C
     uint8_t _readBytes;
 #endif
-    void wire_beginTransmission(uint8_t);
-    uint8_t wire_endTransmission(void);
-    uint8_t wire_requestFrom(uint8_t, uint8_t);
-    size_t wire_write(uint8_t);
-    int wire_read(void);
+    void i2cWire_beginTransmission(uint8_t);
+    uint8_t i2cWire_endTransmission(void);
+    uint8_t i2cWire_requestFrom(uint8_t, uint8_t);
+    size_t i2cWire_write(uint8_t);
+    int i2cWire_read(void);
 };
 
 #ifndef PCA9685_EXCLUDE_SERVO_EVAL
