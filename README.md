@@ -15,16 +15,16 @@ Forked by NachtRaveVL, July 29th, 2016.
 There are several defines inside of the library's header file that allows for more fine-tuned control.
 
 ```Arduino
-// Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required)
+// Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
 //#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 
-// Uncomment this define if wanting to exclude extended functionality from compilation
+// Uncomment this define if wanting to exclude extended functionality from compilation.
 //#define PCA9685_EXCLUDE_EXT_FUNC        1
 
-// Uncomment this define if wanting to exclude ServoEvaluator assistant from compilation
+// Uncomment this define if wanting to exclude ServoEvaluator assistant from compilation.
 //#define PCA9685_EXCLUDE_SERVO_EVAL      1
 
-// Uncomment this define to enable debug output
+// Uncomment this define to enable debug output.
 //#define PCA9685_ENABLE_DEBUG_OUTPUT     1
 ```
 
