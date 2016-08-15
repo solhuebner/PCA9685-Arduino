@@ -1,7 +1,7 @@
 # PCA9685-Arduino
 Arduino Library for the PCA9685 16-Channel PWM Driver Module.
 
-**PCA9685-Arduino - Version 1.2.3**
+**PCA9685-Arduino - Version 1.2.4**
 
 Library to control a PCA9685 16-channel PWM driver module from an Arduino board.  
 Licensed under the copy-left GNU GPL v3 license.
@@ -15,17 +15,17 @@ Forked by NachtRaveVL, July 29th, 2016.
 There are several defines inside of the library's header file that allows for more fine-tuned control.
 
 ```Arduino
-// Uncomment this define if using the software i2c library (min 4MHz+ processor required)
-//#define PCA9685_USE_SOFTWARE_I2C    1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
+// Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required)
+//#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 
 // Uncomment this define if wanting to exclude extended functionality from compilation
-//#define PCA9685_EXCLUDE_EXT_FUNC    1
+//#define PCA9685_EXCLUDE_EXT_FUNC        1
 
 // Uncomment this define if wanting to exclude ServoEvaluator assistant from compilation
-//#define PCA9685_EXCLUDE_SERVO_EVAL  1
+//#define PCA9685_EXCLUDE_SERVO_EVAL      1
 
 // Uncomment this define to enable debug output
-//#define PCA9685_DEBUG_OUTPUT        1
+//#define PCA9685_ENABLE_DEBUG_OUTPUT     1
 ```
 
 ## Servo Control Note

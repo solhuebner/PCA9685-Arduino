@@ -18,7 +18,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.3
+    PCA9685-Arduino - Version 1.2.4
 */
 
 #ifndef PCA9685_H
@@ -26,17 +26,17 @@
 
 // Library Setup
 
-// Uncomment this define if using the software i2c library (min 4MHz+ processor required)
-//#define PCA9685_USE_SOFTWARE_I2C    1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
+// Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required)
+//#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 
 // Uncomment this define if wanting to exclude extended functionality from compilation
-//#define PCA9685_EXCLUDE_EXT_FUNC    1
+//#define PCA9685_EXCLUDE_EXT_FUNC        1
 
 // Uncomment this define if wanting to exclude ServoEvaluator assistant from compilation
-//#define PCA9685_EXCLUDE_SERVO_EVAL  1
+//#define PCA9685_EXCLUDE_SERVO_EVAL      1
 
 // Uncomment this define to enable debug output
-//#define PCA9685_DEBUG_OUTPUT        1
+//#define PCA9685_ENABLE_DEBUG_OUTPUT     1
 
 // Servo Control Note
 // Many 180 degree controlled digital servos run on a 20ms pulse width (50Hz update
@@ -56,7 +56,7 @@
 #else
 #include <WProgram.h>
 #endif
-#ifndef PCA9685_USE_SOFTWARE_I2C
+#ifndef PCA9685_ENABLE_SOFTWARE_I2C
 #include <Wire.h>
 #endif
 
@@ -79,7 +79,7 @@ typedef enum {
 
 class PCA9685 {
 public:
-#ifndef PCA9685_USE_SOFTWARE_I2C
+#ifndef PCA9685_ENABLE_SOFTWARE_I2C
     // May use a different Wire instance than Wire. Some chipsets, such as Due/Zero/etc.,
     // have a Wire1 class instance that uses the SDA1/SCL1 lines instead.
     // Supported i2c baud rates are 100kHz, 400kHz, and 1000kHz.
@@ -144,7 +144,7 @@ public:
 #endif
 
 private:
-#ifndef PCA9685_USE_SOFTWARE_I2C
+#ifndef PCA9685_ENABLE_SOFTWARE_I2C
     TwoWire *_i2cWire;          // Wire class instance to use
 #endif
     uint8_t _i2cAddress;        // Module's i2c address
@@ -160,7 +160,7 @@ private:
     void writeRegister(uint8_t regAddress, uint8_t value);
     uint8_t readRegister(uint8_t regAddress);
 
-#ifdef PCA9685_USE_SOFTWARE_I2C
+#ifdef PCA9685_ENABLE_SOFTWARE_I2C
     uint8_t _readBytes;
 #endif
     void i2cWire_beginTransmission(uint8_t);
