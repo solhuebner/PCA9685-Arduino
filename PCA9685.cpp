@@ -243,8 +243,8 @@ uint16_t PCA9685::getChannelPWM(int channel) {
         return 0;
     }
 
-    uint8_t retBytes = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)4);
-    if (retBytes != 4) {
+    uint8_t bytesRead = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)4);
+    if (bytesRead != 4) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("  PCA9685::getChannelPWM Read request data not available. Aborting.");
 #endif
@@ -516,9 +516,8 @@ uint8_t PCA9685::readRegister(uint8_t regAddress) {
         return 0;
     }
 
-    uint8_t retBytes = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)1);
-
-    if (retBytes != 1) {
+    uint8_t bytesRead = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)1);
+    if (bytesRead != 1) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("    PCA9685::readRegister Read request data not available. Aborting.");
 #endif
@@ -544,7 +543,6 @@ uint8_t __attribute__((noinline)) i2c_read(bool last);
 #endif
 
 void PCA9685::i2cWire_beginTransmission(uint8_t addr) {
-    _lastI2CError = 0;
 #ifndef PCA9685_ENABLE_SOFTWARE_I2C
     _i2cWire->beginTransmission(addr);
 #else
