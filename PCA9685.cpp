@@ -407,7 +407,7 @@ void PCA9685::enableExtClockLine() {
 
 #endif
 
-int PCA9685::getLastI2CError() {
+uint8_t PCA9685::getLastI2CError() {
     return _lastI2CError;
 }
 
