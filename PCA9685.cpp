@@ -544,6 +544,7 @@ uint8_t __attribute__((noinline)) i2c_read(bool last);
 #endif
 
 void PCA9685::i2cWire_beginTransmission(uint8_t addr) {
+    _lastI2CError = 0;
 #ifndef PCA9685_ENABLE_SOFTWARE_I2C
     _i2cWire->beginTransmission(addr);
 #else
