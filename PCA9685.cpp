@@ -64,6 +64,7 @@ PCA9685::PCA9685(PCA9685_PhaseBalancer phaseBalancer) {
     _i2cAddress = 0;
     _phaseBalancer = phaseBalancer;
     _isProxyAddresser = false;
+    _lastI2CError = 0;
 }
 
 void PCA9685::resetDevices() {
