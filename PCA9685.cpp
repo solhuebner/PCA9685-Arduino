@@ -73,9 +73,14 @@ void PCA9685::resetDevices() {
 
     i2cWire_beginTransmission(0x00);
     i2cWire_write(PCA9685_SW_RESET);
-    i2cWire_endTransmission();
+    uint8_t retStat = i2cWire_endTransmission();
 
     delayMicroseconds(10);
+
+#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
+    Serial.print("  PCA9685::resetDevices retStat: ");
+    Serial.println(retStat);
+#endif
 }
 
 void PCA9685::init(uint8_t i2cAddress, uint8_t mode) {
@@ -229,13 +234,21 @@ uint16_t PCA9685::getChannelPWM(int channel) {
 
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
-    i2cWire_endTransmission();
+    uint8_t retStat = i2cWire_endTransmission();
+
+    if (retStat != 0) {
+#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
+        Serial.println("  PCA9685::getChannelPWM Read request did not set register. Aborting.");
+#endif
+        return 0;
+    }
 
     uint8_t retBytes = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)4);
     if (retBytes != 4) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("  PCA9685::getChannelPWM Read request data not available. Aborting.");
 #endif
+        _lastI2CError = 4;
         return 0;
     }
 
@@ -394,6 +407,10 @@ void PCA9685::enableExtClockLine() {
 
 #endif
 
+int PCA9685::getLastI2CError() {
+    return _lastI2CError;
+}
+
 void PCA9685::getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd) {
     if (pwmAmount == 0) {
         *phaseBegin = PCA9685_PWM_FULL;
@@ -490,13 +507,22 @@ uint8_t PCA9685::readRegister(uint8_t regAddress) {
 
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
-    i2cWire_endTransmission();
+    uint8_t retStat = i2cWire_endTransmission();
+
+    if (retStat != 0) {
+#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
+        Serial.println("    PCA9685::readRegister Read request did not set register. Aborting.");
+#endif
+        return 0;
+    }
 
     uint8_t retBytes = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)1);
+
     if (retBytes != 1) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("    PCA9685::readRegister Read request data not available. Aborting.");
 #endif
+        _lastI2CError = 4;
         return 0;
     }
 
@@ -527,10 +553,10 @@ void PCA9685::i2cWire_beginTransmission(uint8_t addr) {
 
 uint8_t PCA9685::i2cWire_endTransmission(void) {
 #ifndef PCA9685_ENABLE_SOFTWARE_I2C
-    return _i2cWire->endTransmission();
+    return (_lastI2CError = _i2cWire->endTransmission());
 #else
     i2c_stop();
-    return 0;
+    return (_lastI2CError = 0);
 #endif
 }
 

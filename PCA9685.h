@@ -143,6 +143,8 @@ public:
     void enableExtClockLine();
 #endif
 
+    int getLastI2CError();
+
 private:
 #ifndef PCA9685_ENABLE_SOFTWARE_I2C
     TwoWire *_i2cWire;          // Wire class instance to use
@@ -150,6 +152,7 @@ private:
     uint8_t _i2cAddress;        // Module's i2c address
     PCA9685_PhaseBalancer _phaseBalancer; // Phase balancer scheme to distribute load
     bool _isProxyAddresser;     // Instance is a proxy for sub addressing (disables certain functionality)
+    int _lastI2CError;          // Last i2c error
 
     void getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
 
