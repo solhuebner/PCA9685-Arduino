@@ -18,7 +18,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.4
+    PCA9685-Arduino - Version 1.2.5
 */
 
 #ifndef PCA9685_H
@@ -74,6 +74,7 @@ typedef enum {
     PCA9685_PhaseBalancer_None = -1,    // Disables phase balancing, all high phase areas start at begining of cycle
     PCA9685_PhaseBalancer_Weaved = 0,   // Balances first few outputs better, steps away from previous shorten towards last output
     PCA9685_PhaseBalancer_Linear,       // Balances all outputs linearly, 256 steps away from previous output
+
     PCA9685_PhaseBalancer_Count
 } PCA9685_PhaseBalancer;
 
@@ -108,6 +109,9 @@ public:
     // or conflicts certain states.
     void initAsProxyAddresser(uint8_t i2cAddress = 0xE0);
 #endif
+
+    uint8_t getI2CAddress();
+    PCA9685_PhaseBalancer getPhaseBalancer();
 
     // Min: 24Hz, Max: 1526Hz, Default: 200Hz (resolution widens as Hz goes higher)
     void setPWMFrequency(float pwmFrequency);
@@ -144,6 +148,11 @@ public:
 #endif
 
     uint8_t getLastI2CError();
+
+#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
+    void printModuleInfo();
+    void checkForErrors();
+#endif
 
 private:
 #ifndef PCA9685_ENABLE_SOFTWARE_I2C

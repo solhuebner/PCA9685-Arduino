@@ -18,7 +18,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.4
+    PCA9685-Arduino - Version 1.2.5
 */
 
 #include "PCA9685.h"
@@ -74,13 +74,12 @@ void PCA9685::resetDevices() {
 
     i2cWire_beginTransmission(0x00);
     i2cWire_write(PCA9685_SW_RESET);
-    uint8_t retStat = i2cWire_endTransmission();
+    i2cWire_endTransmission();
 
     delayMicroseconds(10);
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.print("  PCA9685::resetDevices retStat: ");
-    Serial.println(retStat);
+    checkForErrors();
 #endif
 }
 
@@ -112,6 +111,14 @@ void PCA9685::initAsProxyAddresser(uint8_t i2cAddress) {
 }
 
 #endif
+
+uint8_t PCA9685::getI2CAddress() {
+    return _i2cAddress;
+}
+
+PCA9685_PhaseBalancer PCA9685::getPhaseBalancer() {
+    return _phaseBalancer;
+}
 
 void PCA9685::setPWMFrequency(float pwmFrequency) {
     if (pwmFrequency < 0 || _isProxyAddresser) return;
@@ -235,21 +242,23 @@ uint16_t PCA9685::getChannelPWM(int channel) {
 
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
-    uint8_t retStat = i2cWire_endTransmission();
-
-    if (retStat != 0) {
+    if (i2cWire_endTransmission() != 0) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("  PCA9685::getChannelPWM Read request did not set register. Aborting.");
+        checkForErrors();
 #endif
         return 0;
     }
 
     uint8_t bytesRead = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)4);
     if (bytesRead != 4) {
+        while (bytesRead-- > 0)
+            i2cWire_read();
+        _lastI2CError = 4;
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("  PCA9685::getChannelPWM Read request data not available. Aborting.");
+        checkForErrors();
 #endif
-        _lastI2CError = 4;
         return 0;
     }
 
@@ -412,6 +421,123 @@ uint8_t PCA9685::getLastI2CError() {
     return _lastI2CError;
 }
 
+#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
+
+void PCA9685::printModuleInfo() {
+    Serial.println("\r\n ~~~ PCA9685 Module Info ~~~");
+
+    Serial.println("\r\ni2c Address:");
+    Serial.print("0x");
+    Serial.println(_i2cAddress, HEX);
+
+    Serial.println("\r\nPhase Balancer:");
+    switch (_phaseBalancer) {
+        case PCA9685_PhaseBalancer_None:
+            Serial.println("PCA9685_PhaseBalancer_None"); break;
+        case PCA9685_PhaseBalancer_Weaved:
+            Serial.println("PCA9685_PhaseBalancer_Weaved"); break;
+        case PCA9685_PhaseBalancer_Linear:
+            Serial.println("PCA9685_PhaseBalancer_Linear"); break;
+        default:
+            Serial.println(""); break;
+    }
+
+    if (!_isProxyAddresser) {
+        Serial.println("\r\nProxy Addresser:");
+        Serial.println("false");
+
+        Serial.println("\r\nMode1 Register:");
+        uint8_t mode1Val = readRegister(PCA9685_MODE1_REG);
+        Serial.print("0x");
+        Serial.print(mode1Val, HEX);
+        Serial.print(", Bitset:");
+        if (mode1Val & PCA9685_MODE_RESTART)
+            Serial.print(" PCA9685_MODE_RESTART");
+        if (mode1Val & PCA9685_MODE_EXTCLK)
+            Serial.print(" PCA9685_MODE_EXTCLK");
+        if (mode1Val & PCA9685_MODE_AUTOINC)
+            Serial.print(" PCA9685_MODE_AUTOINC");
+        if (mode1Val & PCA9685_MODE_SLEEP)
+            Serial.print(" PCA9685_MODE_SLEEP");
+        if (mode1Val & PCA9685_MODE_SUBADR1)
+            Serial.print(" PCA9685_MODE_SUBADR1");
+        if (mode1Val & PCA9685_MODE_SUBADR2)
+            Serial.print(" PCA9685_MODE_SUBADR2");
+        if (mode1Val & PCA9685_MODE_SUBADR3)
+            Serial.print(" PCA9685_MODE_SUBADR3");
+        if (mode1Val & PCA9685_MODE_ALLCALL)
+            Serial.print(" PCA9685_MODE_ALLCALL");
+        Serial.println("");
+
+        Serial.println("\r\nMode2 Register:");
+        uint8_t mode2Val = readRegister(PCA9685_MODE2_REG);
+        Serial.print("0x");
+        Serial.print(mode2Val, HEX);
+        Serial.print(", Bitset:");
+        if (mode2Val & PCA9685_MODE_INVRT)
+            Serial.print(" PCA9685_MODE_INVRT");
+        if (mode2Val & PCA9685_MODE_OUTPUT_ONACK)
+            Serial.print(" PCA9685_MODE_OUTPUT_ONACK");
+        if (mode2Val & PCA9685_MODE_OUTPUT_TPOLE)
+            Serial.print(" PCA9685_MODE_OUTPUT_TPOLE");
+        if (mode2Val & PCA9685_MODE_OUTNE_HIGHZ)
+            Serial.print(" PCA9685_MODE_OUTNE_HIGHZ");
+        if (mode2Val & PCA9685_MODE_OUTNE_LOW)
+            Serial.print(" PCA9685_MODE_OUTNE_LOW");
+        Serial.println("");
+
+        Serial.println("\r\nSubAddress1 Register:");
+        uint8_t subAdr1Val = readRegister(PCA9685_SUBADR1_REG);
+        Serial.print("0x");
+        Serial.println(subAdr1Val, HEX);
+
+        Serial.println("\r\nSubAddress2 Register:");
+        uint8_t subAdr2Val = readRegister(PCA9685_SUBADR2_REG);
+        Serial.print("0x");
+        Serial.println(subAdr2Val, HEX);
+
+        Serial.println("\r\nSubAddress3 Register:");
+        uint8_t subAdr3Val = readRegister(PCA9685_SUBADR3_REG);
+        Serial.print("0x");
+        Serial.println(subAdr3Val, HEX);
+
+        Serial.println("\r\nAllCall Register:");
+        uint8_t allCallVal = readRegister(PCA9685_ALLCALL_REG);
+        Serial.print("0x");
+        Serial.println(allCallVal, HEX);
+    }
+    else {
+        Serial.println("\r\nProxy Addresser:");
+        Serial.println("true");
+    }
+}
+
+static const char *textForI2CError(uint8_t errorCode) {
+    switch (errorCode) {
+    case 0:
+        return "Success";
+    case 1:
+        return "Data too long to fit in transmit buffer";
+    case 2:
+        return "Received NACK on transmit of address";
+    case 3:
+        return "Received NACK on transmit of data";
+    default:
+        return "Other error";
+    }
+}
+
+void PCA9685::checkForErrors() {
+    if (_lastI2CError) {
+        Serial.print("  LeptonFLiR::checkErrors lastI2CError: ");
+        Serial.print(_lastI2CError);
+        Serial.print(": ");
+        Serial.println(textForI2CError(getLastI2CError()));
+    }
+}
+
+#endif
+
 void PCA9685::getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd) {
     if (pwmAmount == 0) {
         *phaseBegin = PCA9685_PWM_FULL;
@@ -459,11 +585,10 @@ void PCA9685::writeChannelBegin(int channel) {
 }
 
 void PCA9685::writeChannelEnd() {
-    uint8_t retStat = i2cWire_endTransmission();
+    i2cWire_endTransmission();
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.print("  PCA9685::writeChannelEnd retStat: ");
-    Serial.println(retStat);
+    checkForErrors();
 #endif
 }
 
@@ -492,11 +617,10 @@ void PCA9685::writeRegister(uint8_t regAddress, uint8_t value) {
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
     i2cWire_write(value);
-    uint8_t retStat = i2cWire_endTransmission();
+    i2cWire_endTransmission();
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    Serial.print("    PCA9685::writeRegister retStat: ");
-    Serial.println(retStat);
+    checkForErrors();
 #endif
 }
 
@@ -508,21 +632,23 @@ uint8_t PCA9685::readRegister(uint8_t regAddress) {
 
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
-    uint8_t retStat = i2cWire_endTransmission();
-
-    if (retStat != 0) {
+    if (i2cWire_endTransmission() != -0) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("    PCA9685::readRegister Read request did not set register. Aborting.");
+        checkForErrors();
 #endif
         return 0;
     }
 
     uint8_t bytesRead = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)1);
     if (bytesRead != 1) {
+        while (bytesRead-- > 0)
+            i2cWire_read();
+        _lastI2CError = 4;
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("    PCA9685::readRegister Read request data not available. Aborting.");
+        checkForErrors();
 #endif
-        _lastI2CError = 4;
         return 0;
     }
 
