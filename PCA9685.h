@@ -60,11 +60,11 @@
 #include <Wire.h>
 #endif
 
-#define PCA9685_MODE_INVRT          (uint8_t)0x10  // Inverts polarity of channel output signal
-#define PCA9685_MODE_OUTPUT_ONACK   (uint8_t)0x08  // Channel update happens upon ACK (post-set) rather than on STOP (endTransmission)
-#define PCA9685_MODE_OUTPUT_TPOLE   (uint8_t)0x04  // Use a totem-pole (push-pull) style output, typical for boards using this chipset
-#define PCA9685_MODE_OUTNE_HIGHZ    (uint8_t)0x02  // For active low output enable, sets channel output to high-impedance state
-#define PCA9685_MODE_OUTNE_LOW      (uint8_t)0x01  // Similarly, sets channel output to high if in totem-pole mode, otherwise high-impedance state
+#define PCA9685_MODE_INVRT          (byte)0x10  // Inverts polarity of channel output signal
+#define PCA9685_MODE_OUTPUT_ONACK   (byte)0x08  // Channel update happens upon ACK (post-set) rather than on STOP (endTransmission)
+#define PCA9685_MODE_OUTPUT_TPOLE   (byte)0x04  // Use a totem-pole (push-pull) style output, typical for boards using this chipset
+#define PCA9685_MODE_OUTNE_HIGHZ    (byte)0x02  // For active low output enable, sets channel output to high-impedance state
+#define PCA9685_MODE_OUTNE_LOW      (byte)0x01  // Similarly, sets channel output to high if in totem-pole mode, otherwise high-impedance state
 
 #define PCA9685_MIN_CHANNEL         0
 #define PCA9685_MAX_CHANNEL         15
@@ -101,16 +101,16 @@ public:
     // Called in setup(). The i2c address here is the value of the A0, A1, A2, A3, A4 and
     // A5 pins ONLY, as the class takes care of its internal base address. i2cAddress
     // should be a value between 0 and 61, since only 62 boards can be addressed.
-    void init(uint8_t i2cAddress = 0, uint8_t mode = PCA9685_MODE_OUTPUT_ONACK | PCA9685_MODE_OUTPUT_TPOLE);
+    void init(byte i2cAddress = 0, byte mode = PCA9685_MODE_OUTPUT_ONACK | PCA9685_MODE_OUTPUT_TPOLE);
 
 #ifndef PCA9685_EXCLUDE_EXT_FUNC
     // Called in setup(). Used when instance talks through to AllCall/Sub1-Sub3 instances
     // as a proxy object. Using this method will disable any method that performs a read
     // or conflicts certain states.
-    void initAsProxyAddresser(uint8_t i2cAddress = 0xE0);
+    void initAsProxyAddresser(byte i2cAddress = 0xE0);
 #endif
 
-    uint8_t getI2CAddress();
+    byte getI2CAddress();
     PCA9685_PhaseBalancer getPhaseBalancer();
 
     // Min: 24Hz, Max: 1526Hz, Default: 200Hz (resolution widens as Hz goes higher)
@@ -134,10 +134,10 @@ public:
 
     // Enables multiple talk-through paths via i2c bus (lsb/bit0 must stay 0)
     // To use, create a new class instance using initAsSubAddressed() with said address
-    void enableAllCallAddress(uint8_t i2cAddress = 0xE0);
-    void enableSub1Address(uint8_t i2cAddress = 0xE2);
-    void enableSub2Address(uint8_t i2cAddress = 0xE4);
-    void enableSub3Address(uint8_t i2cAddress = 0xE8);
+    void enableAllCallAddress(byte i2cAddress = 0xE0);
+    void enableSub1Address(byte i2cAddress = 0xE2);
+    void enableSub2Address(byte i2cAddress = 0xE4);
+    void enableSub3Address(byte i2cAddress = 0xE8);
     void disableAllCallAddress();
     void disableSub1Address();
     void disableSub2Address();
@@ -147,7 +147,7 @@ public:
     void enableExtClockLine();
 #endif
 
-    uint8_t getLastI2CError();
+    byte getLastI2CError();
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
     void printModuleInfo();
@@ -158,10 +158,10 @@ private:
 #ifndef PCA9685_ENABLE_SOFTWARE_I2C
     TwoWire *_i2cWire;          // Wire class instance to use
 #endif
-    uint8_t _i2cAddress;        // Module's i2c address
+    byte _i2cAddress;           // Module's i2c address
     PCA9685_PhaseBalancer _phaseBalancer; // Phase balancer scheme to distribute load
     bool _isProxyAddresser;     // Instance is a proxy for sub addressing (disables certain functionality)
-    uint8_t _lastI2CError;      // Last i2c error
+    byte _lastI2CError;         // Last i2c error
 
     void getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
 
@@ -169,8 +169,8 @@ private:
     void writeChannelEnd();
     void writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
 
-    void writeRegister(uint8_t regAddress, uint8_t value);
-    uint8_t readRegister(uint8_t regAddress);
+    void writeRegister(byte regAddress, byte value);
+    byte readRegister(byte regAddress);
 
 #ifdef PCA9685_ENABLE_SOFTWARE_I2C
     uint8_t _readBytes;
