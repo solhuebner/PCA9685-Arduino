@@ -447,7 +447,7 @@ static const char *textForI2CError(byte errorCode) {
 
 void PCA9685::checkForErrors() {
     if (_lastI2CError) {
-        Serial.print("  LeptonFLiR::checkErrors lastI2CError: ");
+        Serial.print("  PCA9685::checkErrors lastI2CError: ");
         Serial.print(_lastI2CError);
         Serial.print(": ");
         Serial.println(textForI2CError(getLastI2CError()));
