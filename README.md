@@ -1,7 +1,7 @@
 # PCA9685-Arduino
 Arduino Library for the PCA9685 16-Channel PWM Driver Module.
 
-**PCA9685-Arduino - Version 1.2.5**
+**PCA9685-Arduino - Version 1.2.6**
 
 Library to control a PCA9685 16-channel PWM driver module from an Arduino board.  
 Licensed under the copy-left GNU GPL v3 license.
@@ -81,8 +81,7 @@ void setup() {
 }
 
 void loop() {
-    // Only 7 channels can be batched at once, due to a BUFFER_LENGTH limit of 32
-    word pwms[7];
+    word pwms[12];
     pwms[0] = random(0, 4096);
     pwms[1] = random(0, 4096);
     pwms[2] = random(0, 4096);
@@ -90,8 +89,16 @@ void loop() {
     pwms[4] = random(0, 4096);
     pwms[5] = random(0, 4096);
     pwms[6] = random(0, 4096);
-    pwmDriver.setChannelsPWM(0, 7, pwms);
+    pwms[7] = random(0, 4096);
+    pwms[8] = random(0, 4096);
+    pwms[9] = random(0, 4096);
+    pwms[10] = random(0, 4096);
+    pwms[11] = random(0, 4096);
+    pwmDriver.setChannelsPWM(0, 12, pwms);
     delay(500);
+
+    // Note that only 7 channels can be written in one i2c transaction due to a
+    // BUFFER_LENGTH limit of 32, so 12 channels will take two i2c transactions.
 }
 
 ```

@@ -1,5 +1,6 @@
 /*  Arduino Library for the PCA9685 16-Channel PWM Driver Module.
-    Copyright (C) 2012 Kasper Skårhøj    <kasperskaarhoj@gmail.com>
+    Copyright (c) 2016 NachtRaveVL      <nachtravevl@gmail.com>
+    Copyright (C) 2012 Kasper Skårhøj   <kasperskaarhoj@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.5
+    PCA9685-Arduino - Version 1.2.6
 */
 
 #ifndef PCA9685_H
@@ -122,8 +123,7 @@ public:
 
     // PWM amounts 0 - 4096, 0 full off, 4096 full on
     void setChannelPWM(int channel, uint16_t pwmAmount);
-    // Max of 7 channels can be batched at once
-    void setChannelsPWM(int startChannel, int count, const uint16_t *pwmAmounts);
+    void setChannelsPWM(int begChannel, int numChannels, const uint16_t *pwmAmounts);
 
 #ifndef PCA9685_EXCLUDE_EXT_FUNC
     // Sets all channels, but won't distribute phases
@@ -166,8 +166,8 @@ private:
     void getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd);
 
     void writeChannelBegin(int channel);
-    void writeChannelEnd();
     void writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd);
+    void writeChannelEnd();
 
     void writeRegister(byte regAddress, byte value);
     byte readRegister(byte regAddress);
