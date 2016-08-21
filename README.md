@@ -237,7 +237,7 @@ In main sketch:
 
 #include "SoftI2CMaster.h"              // Include must come after setup defines
 
-PCA9685 pwmController;                  // Library using linear weaved phase balancing scheme
+PCA9685 pwmController;                  // Library using default linear phase balancing scheme
 
 void setup() {
     i2c_init();                         // Software I2C must be started first
