@@ -19,7 +19,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.6
+    PCA9685-Arduino - Version 1.2.7
 */
 
 #include "PCA9685.h"
@@ -50,10 +50,10 @@
 #define PCA9685_SW_RESET            (byte)0x06 // Sent to address 0x00 to reset all devices on Wire line
 #define PCA9685_PWM_FULL            (uint16_t)0x01000 // Special value for full on/full off LEDx modes
 
-// To balance the load out in a weaved fashion, we use this offset table to distribute the
-// load on the outputs in a more intelligent fashion than just a simple 4096/16 offset per
-// channel. We can set the off cycle value to be lower than the on cycle, which will put
-// the high edge across the 0-4095 phase cycle range.
+// To balance the load out in a weaved fashion, we use this offset table to distribute
+// the load on the outputs in a more interleaving fashion than just a simple 16 offset
+// per channel. We can set the off cycle value to be lower than the on cycle, which will
+// put the high edge across the 0-4095 phase cycle range, which is supported by device.
 static uint16_t phaseDistTable[16] = { 0, 2048, 1024, 3072, 512, 3584, 1536, 2560, 256, 3840, 1280, 2304, 3328, 768, 2816, 1792 };
 
 #ifndef PCA9685_ENABLE_SOFTWARE_I2C
@@ -465,16 +465,16 @@ void PCA9685::getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegi
         *phaseBegin = 0;
         *phaseEnd = PCA9685_PWM_FULL;
     }
-    else if (_phaseBalancer == PCA9685_PhaseBalancer_Weaved) {
+    else if (_phaseBalancer == PCA9685_PhaseBalancer_Linear) {
         // Distribute high phase area over entire phase range to balance load.
-        *phaseBegin = phaseDistTable[channel];
+        *phaseBegin = channel * (4096 / 16);
         *phaseEnd = *phaseBegin + pwmAmount;
         if (*phaseEnd >= PCA9685_PWM_FULL)
             *phaseEnd -= PCA9685_PWM_FULL;
     }
-    else if (_phaseBalancer == PCA9685_PhaseBalancer_Linear) {
+    else if (_phaseBalancer == PCA9685_PhaseBalancer_Weaved) {
         // Distribute high phase area over entire phase range to balance load.
-        *phaseBegin = channel * (4096 / 16);
+        *phaseBegin = phaseDistTable[channel];
         *phaseEnd = *phaseBegin + pwmAmount;
         if (*phaseEnd >= PCA9685_PWM_FULL)
             *phaseEnd -= PCA9685_PWM_FULL;
@@ -652,10 +652,10 @@ void PCA9685::printModuleInfo() {
     switch (_phaseBalancer) {
         case PCA9685_PhaseBalancer_None:
             Serial.println("PCA9685_PhaseBalancer_None"); break;
-        case PCA9685_PhaseBalancer_Weaved:
-            Serial.println("PCA9685_PhaseBalancer_Weaved"); break;
         case PCA9685_PhaseBalancer_Linear:
             Serial.println("PCA9685_PhaseBalancer_Linear"); break;
+        case PCA9685_PhaseBalancer_Weaved:
+            Serial.println("PCA9685_PhaseBalancer_Weaved"); break;
         default:
             Serial.println(""); break;
     }

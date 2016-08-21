@@ -19,7 +19,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.6
+    PCA9685-Arduino - Version 1.2.7
 */
 
 #ifndef PCA9685_H
@@ -73,8 +73,8 @@
 
 typedef enum {
     PCA9685_PhaseBalancer_None = -1,    // Disables phase balancing, all high phase areas start at begining of cycle
-    PCA9685_PhaseBalancer_Weaved = 0,   // Balances first few outputs better, steps away from previous shorten towards last output
-    PCA9685_PhaseBalancer_Linear,       // Balances all outputs linearly, 256 steps away from previous output
+    PCA9685_PhaseBalancer_Linear = 0,   // Balances all outputs linearly, 256 steps away from previous output
+    PCA9685_PhaseBalancer_Weaved,       // Balances first few outputs better, steps away from previous shorten towards last output
 
     PCA9685_PhaseBalancer_Count
 } PCA9685_PhaseBalancer;
@@ -85,12 +85,12 @@ public:
     // May use a different Wire instance than Wire. Some chipsets, such as Due/Zero/etc.,
     // have a Wire1 class instance that uses the SDA1/SCL1 lines instead.
     // Supported i2c baud rates are 100kHz, 400kHz, and 1000kHz.
-    PCA9685(TwoWire& i2cWire = Wire, PCA9685_PhaseBalancer phaseBalancer = PCA9685_PhaseBalancer_Weaved);
+    PCA9685(TwoWire& i2cWire = Wire, PCA9685_PhaseBalancer phaseBalancer = PCA9685_PhaseBalancer_Linear);
 #else
     // Minimum supported i2c baud rate is 100kHz, which means minimum supported processor
     // speed is 4MHz+ while running i2c standard mode. For 400kHz i2c baud rate, minimum
     // supported processor speed is 16MHz+ while running i2c fast mode.
-    PCA9685(PCA9685_PhaseBalancer phaseBalancer = PCA9685_PhaseBalancer_Weaved);
+    PCA9685(PCA9685_PhaseBalancer phaseBalancer = PCA9685_PhaseBalancer_Linear);
 #endif
 
     // Should be called only once in setup(), before any init()'s, but after Wire.begin().
