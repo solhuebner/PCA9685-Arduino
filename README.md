@@ -111,7 +111,7 @@ void loop() {
 
 ### Multi-Device Proxy Example
 
-In this example, we use a special to control other modules attached to it via the ALL_CALL register.
+In this example, we use a special instance to control other modules attached to it via the ALL_CALL register.
 
 ```Arduino
 #include <Wire.h>
