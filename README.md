@@ -10,6 +10,8 @@ Created by Kasper Skårhøj, August 3rd, 2012.
 Forked by Vitska, June 18th, 2016.  
 Forked by NachtRaveVL, July 29th, 2016.
 
+This library allows communication with boards running a PCA6985 16-channel PWM driver module. It supports a wide range of available functionality, from setting the output PWM frequecy, allowing multi-device proxy addressing, and provides an assistant class for working with Servos.
+
 ## Library Setup
 
 There are several defines inside of the library's header file that allows for more fine-tuned control.
@@ -62,6 +64,9 @@ void setup() {
 ```
 
 ### Batching Example
+
+In this example we will randomly select PWM frequencies on all 12 outputs and allow them to drive for 5 seconds before changing them.
+
 ```Arduino
 #include <Wire.h>
 #include "PCA9685.h"
@@ -95,7 +100,7 @@ void loop() {
     pwms[10] = random(0, 4096);
     pwms[11] = random(0, 4096);
     pwmDriver.setChannelsPWM(0, 12, pwms);
-    delay(500);
+    delay(5000);
 
     // Note that only 7 channels can be written in one i2c transaction due to a
     // BUFFER_LENGTH limit of 32, so 12 channels will take two i2c transactions.
@@ -197,4 +202,51 @@ void setup() {
     Serial.println(pwmDriver.getChannelPWM(1)); // Should output 526 for +90°
 }
 
+```
+
+## Module Info
+
+If one uncomments the PCA9685_ENABLE_DEBUG_OUTPUT define in the header file (thus enabling debug output), a special printModuleInfo() method will become available which will display information about the module itself, including initalized states, register values, current settings, etc. All calls being made will display internal debug information about the structure of the call itself. An example of this output is shown here:
+
+```Arduino
+  ~~~ PCA9685 Module Info ~~~
+
+i2c Address:
+0x40
+
+Phase Balancer:
+PCA9685_PhaseBalancer_Weaved
+
+Proxy Addresser:
+false
+
+Mode1 Register:
+  PCA9685::readRegister regAddress: 0x0
+    PCA9685::readRegister retVal: 0x20
+0x20, Bitset: PCA9685_MODE_AUTOINC
+
+Mode2 Register:
+  PCA9685::readRegister regAddress: 0x1
+    PCA9685::readRegister retVal: 0xC
+0xC, Bitset: PCA9685_MODE_OUTPUT_ONACK PCA9685_MODE_OUTPUT_TPOLE
+
+SubAddress1 Register:
+  PCA9685::readRegister regAddress: 0x2
+    PCA9685::readRegister retVal: 0xE2
+0xE2
+
+SubAddress2 Register:
+  PCA9685::readRegister regAddress: 0x3
+    PCA9685::readRegister retVal: 0xE4
+0xE4
+
+SubAddress3 Register:
+  PCA9685::readRegister regAddress: 0x4
+    PCA9685::readRegister retVal: 0xE8
+0xE8
+
+AllCall Register:
+  PCA9685::readRegister regAddress: 0x5
+    PCA9685::readRegister retVal: 0xE0
+0xE0
 ```
