@@ -261,6 +261,17 @@ In PCA9685.h:
 #define PCA9685_ENABLE_DEBUG_OUTPUT     1
 ```
 
+In main sketch:
+```Arduino
+PCA9685 pwmController;
+
+void setup() {
+    // ...
+
+    pwmController.printModuleInfo();
+}
+```
+
 In serial monitor:
 ```
   ~~~ PCA9685 Module Info ~~~
