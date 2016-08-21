@@ -65,7 +65,7 @@ void setup() {
 
 ### Batching Example
 
-In this example we will randomly select PWM frequencies on all 12 outputs and allow them to drive for 5 seconds before changing them.
+In this example, we randomly select PWM frequencies on all 12 outputs and allow them to drive for 5 seconds before changing them.
 
 ```Arduino
 #include <Wire.h>
@@ -109,6 +109,9 @@ void loop() {
 ```
 
 ### Multi-Device Proxy Example
+
+In this example, we use a special instance to control other modules attached to it via the ALL_CALL register.
+
 ```Arduino
 #include <Wire.h>
 #include "PCA9685.h"
@@ -149,6 +152,9 @@ void setup() {
 ```
 
 ### Servo Evaluator Example
+
+In this example, we utilize the ServoEvaluator class to assist with setting PWM frequencies when working with servos.
+
 ```Arduino
 #include <Wire.h>
 #include "PCA9685.h"
