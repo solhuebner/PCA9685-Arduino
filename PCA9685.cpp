@@ -249,7 +249,7 @@ uint16_t PCA9685::getChannelPWM(int channel) {
 
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
-    if (i2cWire_endTransmission() != 0) {
+    if (i2cWire_endTransmission()) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("  PCA9685::getChannelPWM Read request did not set register. Aborting.");
         checkForErrors();
@@ -552,7 +552,7 @@ byte PCA9685::readRegister(byte regAddress) {
 
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
-    if (i2cWire_endTransmission() != 0) {
+    if (i2cWire_endTransmission()) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("    PCA9685::readRegister Read request did not set register. Aborting.");
         checkForErrors();
