@@ -179,7 +179,7 @@ private:
     uint8_t i2cWire_endTransmission(void);
     uint8_t i2cWire_requestFrom(uint8_t, uint8_t);
     size_t i2cWire_write(uint8_t);
-    int i2cWire_read(void);
+    uint8_t i2cWire_read(void);
 };
 
 #ifndef PCA9685_EXCLUDE_SERVO_EVAL

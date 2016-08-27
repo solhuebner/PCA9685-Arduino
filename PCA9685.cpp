@@ -552,7 +552,7 @@ byte PCA9685::readRegister(byte regAddress) {
 
     i2cWire_beginTransmission(_i2cAddress);
     i2cWire_write(regAddress);
-    if (i2cWire_endTransmission() != -0) {
+    if (i2cWire_endTransmission() != 0) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         Serial.println("    PCA9685::readRegister Read request did not set register. Aborting.");
         checkForErrors();
@@ -624,17 +624,17 @@ size_t PCA9685::i2cWire_write(uint8_t data) {
 #endif
 }
 
-int PCA9685::i2cWire_read(void) {
+uint8_t PCA9685::i2cWire_read(void) {
 #ifndef PCA9685_ENABLE_SOFTWARE_I2C
-    return _i2cWire->read();
+    return (uint8_t)(_i2cWire->read() & 0xFF);
 #else
-    if (_readBytes > 1)
-        return (int)i2c_read(_readBytes--);
+    if (_readBytes > 1) {
+        _readByes -= 1;
+        return (uint8_t)(i2c_read(false) & 0xFF);
+    }
     else {
         _readBytes = 0;
-        int retVal = (int)i2c_read(true);
-        i2c_stop();
-        return retVal;
+        return (uint8_t)(i2c_read(true) & 0xFF);
     }
 #endif
 }
