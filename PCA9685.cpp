@@ -251,7 +251,6 @@ uint16_t PCA9685::getChannelPWM(int channel) {
     i2cWire_write(regAddress);
     if (i2cWire_endTransmission()) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-        Serial.println("  PCA9685::getChannelPWM Read request did not set register. Aborting.");
         checkForErrors();
 #endif
         return 0;
@@ -263,7 +262,6 @@ uint16_t PCA9685::getChannelPWM(int channel) {
             i2cWire_read();
         _lastI2CError = 4;
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-        Serial.println("  PCA9685::getChannelPWM Read request data not available. Aborting.");
         checkForErrors();
 #endif
         return 0;
@@ -554,7 +552,6 @@ byte PCA9685::readRegister(byte regAddress) {
     i2cWire_write(regAddress);
     if (i2cWire_endTransmission()) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-        Serial.println("    PCA9685::readRegister Read request did not set register. Aborting.");
         checkForErrors();
 #endif
         return 0;
@@ -566,7 +563,6 @@ byte PCA9685::readRegister(byte regAddress) {
             i2cWire_read();
         _lastI2CError = 4;
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-        Serial.println("    PCA9685::readRegister Read request data not available. Aborting.");
         checkForErrors();
 #endif
         return 0;
