@@ -1,5 +1,6 @@
 // PCA9685-Arduino Multi-Device Proxy Example
-// In this example, we use a special instance to control other modules attached to it via the ALL_CALL register.
+// In this example, we use a special instance to control other modules attached to it via
+// the ALL_CALL register.
 
 #include <Wire.h>
 #include "PCA9685.h"

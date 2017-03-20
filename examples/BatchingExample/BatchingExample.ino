@@ -1,5 +1,6 @@
 // PCA9685-Arduino Batching Example
-// In this example, we randomly select PWM frequencies on all 12 outputs and allow them to drive for 5 seconds before changing them.
+// In this example, we randomly select PWM frequencies on all 12 outputs and allow them
+// to drive for 5 seconds before changing them.
 
 #include <Wire.h>
 #include "PCA9685.h"

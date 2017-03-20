@@ -1,5 +1,9 @@
 // PCA9685-Arduino Module Info
-// If one uncomments the PCA9685_ENABLE_DEBUG_OUTPUT define in the libraries main header file (thus enabling debug output) the printModuleInfo() method becomes available, which will display information about the module itself, including initalized states, register values, current settings, etc. All calls being made will display internal debug information about the structure of the call itself.
+// If one uncomments the PCA9685_ENABLE_DEBUG_OUTPUT define in the libraries main header
+// file (thus enabling debug output) the printModuleInfo() method becomes available,
+// which will display information about the module itself, including initalized states,
+// register values, current settings, etc. All calls being made will display internal
+// debug information about the structure of the call itself.
 
 // Uncomment this define to enable debug output.
 #define PCA9685_ENABLE_DEBUG_OUTPUT     1
