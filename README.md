@@ -56,7 +56,6 @@ void setup() {
     pwmController.init(B000000);        // Address pins A5-A0 set to B000000
     pwmController.setPWMFrequency(100); // Default is 200Hz, supports 24Hz to 1526Hz
 
-
     pwmController.setChannelPWM(0, 128 << 4); // Set PWM to 128/255, but in 4096 land
 
     Serial.println(pwmController.getChannelPWM(0)); // Should output 2048, which is 128 << 4
@@ -75,6 +74,8 @@ In this example, we randomly select PWM frequencies on all 12 outputs and allow 
 PCA9685 pwmController;                  // Library using default Wire and default linear phase balancing scheme
 
 void setup() {
+	Serial.begin(115200);
+
     Wire.begin();                       // Wire must be started first
     Wire.setClock(400000);              // Supported baud rates are 100kHz, 400kHz, and 1000kHz
 
@@ -124,6 +125,7 @@ PCA9685 pwmControllerAll;               // Not a real device, will act as a prox
 
 void setup() {
     Serial.begin(115200);
+
     Wire.begin();                       // Wire must be started first
     Wire.setClock(400000);              // Supported baud rates are 100kHz, 400kHz, and 1000kHz
 
@@ -131,7 +133,6 @@ void setup() {
 
     pwmController1.init(B000000);       // Address pins A5-A0 set to B000000
     pwmController2.init(B000001);       // Address pins A5-A0 set to B000001
-
 
     pwmController1.setChannelOff(0);    // Turn channel 0 off
     pwmController2.setChannelOff(0);    // On both
@@ -182,7 +183,6 @@ void setup() {
 
     pwmController.init(B000000);        // Address pins A5-A0 set to B000000
     pwmController.setPWMFrequency(50);  // 50Hz provides 20ms standard servo phase length
-    
 
     pwmController.setChannelPWM(0, pwmServo1.pwmForAngle(-90));
     Serial.println(pwmController.getChannelPWM(0)); // Should output 102 for -90°
@@ -193,10 +193,9 @@ void setup() {
     pwmController.setChannelPWM(0, pwmServo1.pwmForAngle(90));
     Serial.println(pwmController.getChannelPWM(0)); // Should output 512 for +90°
 
-
     pwmController.setChannelPWM(1, pwmServo2.pwmForAngle(-90));
     Serial.println(pwmController.getChannelPWM(1)); // Should output 128 for -90°
-    
+
     // Showing less resolution in the -90° to 0° range
     Serial.println(pwmServo2.pwmForAngle(-45)); // Should output 225 for -45°, 97 away from -90°
 
@@ -240,6 +239,8 @@ In main sketch:
 PCA9685 pwmController;                  // Library using default linear phase balancing scheme
 
 void setup() {
+	Serial.begin(115200);
+
     i2c_init();                         // Software I2C must be started first
 
     pwmController.resetDevices();       // Software resets all PCA9685 devices on software I2C line
@@ -263,13 +264,20 @@ In PCA9685.h:
 
 In main sketch:
 ```Arduino
+#include <Wire.h>
+#include "PCA9685.h"
+
 PCA9685 pwmController;
 
 void setup() {
-    // ...
+    Serial.begin(115200);
+
+    Wire.begin();                       // Wire must be started first
+    Wire.setClock(400000);              // Supported baud rates are 100kHz, 400kHz, and 1000kHz
 
     pwmController.printModuleInfo();
 }
+
 ```
 
 In serial monitor:
