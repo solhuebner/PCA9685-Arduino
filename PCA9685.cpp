@@ -87,8 +87,9 @@ void PCA9685::resetDevices() {
 void PCA9685::init(byte i2cAddress, byte mode) {
     if (_isProxyAddresser) return;
 
-    // I2C address is B 1 A5 A4 A3 A2 A1 A0 {W=0, R=1}
-    _i2cAddress = PCA9685_I2C_BASE_ADDRESS | ((i2cAddress & 0x3F) << 1);
+    // I2C 7-bit address is B 1 A5 A4 A3 A2 A1 A0
+    // RW bit added by Arduino core TWI library
+    _i2cAddress = PCA9685_I2C_BASE_ADDRESS | (i2cAddress & 0x3F);
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
     Serial.print("PCA9685::init i2cAddress: 0x");
