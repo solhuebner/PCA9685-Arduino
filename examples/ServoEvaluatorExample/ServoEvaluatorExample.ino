@@ -53,3 +53,6 @@ void setup() {
     pwmController.setChannelPWM(1, pwmServo2.pwmForAngle(90));
     Serial.println(pwmController.getChannelPWM(1)); // Should output 526 for +90°
 }
+
+void loop() {
+}

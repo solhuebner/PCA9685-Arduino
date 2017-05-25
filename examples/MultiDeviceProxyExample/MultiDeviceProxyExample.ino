@@ -37,3 +37,6 @@ void setup() {
     // Note: Various parts of functionality of the proxy class instance are actually
     // disabled - typically anything that involves a read command being issued.
 }
+
+void loop() {
+}

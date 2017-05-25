@@ -21,3 +21,6 @@ void setup() {
 
     pwmController.printModuleInfo();
 }
+
+void loop() {
+}

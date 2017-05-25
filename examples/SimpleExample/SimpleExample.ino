@@ -20,3 +20,6 @@ void setup() {
 
     Serial.println(pwmController.getChannelPWM(0)); // Should output 2048, which is 128 << 4
 }
+
+void loop() {
+}

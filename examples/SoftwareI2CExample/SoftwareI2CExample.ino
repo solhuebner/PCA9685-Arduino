@@ -32,3 +32,6 @@ void setup() {
 
     pwmController.setChannelPWM(0, 2048); // Should see a 50% duty cycle along the 5ms phase width
 }
+
+void loop() {
+}
