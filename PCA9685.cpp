@@ -642,7 +642,7 @@ uint8_t PCA9685::i2cWire_read(void) {
     return (uint8_t)(_i2cWire->read() & 0xFF);
 #else
     if (_readBytes > 1) {
-        _readByes -= 1;
+        _readBytes -= 1;
         return (uint8_t)(i2c_read(false) & 0xFF);
     }
     else {
