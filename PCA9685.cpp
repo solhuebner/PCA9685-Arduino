@@ -261,6 +261,9 @@ uint16_t PCA9685::getChannelPWM(int channel) {
     if (bytesRead != 4) {
         while (bytesRead-- > 0)
             i2cWire_read();
+#ifdef PCA9685_ENABLE_SOFTWARE_I2C
+        i2c_stop(); // Manually have to send stop bit in software i2c mode
+#else
         _lastI2CError = 4;
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         checkForErrors();
@@ -272,6 +275,10 @@ uint16_t PCA9685::getChannelPWM(int channel) {
     phaseBegin |= (uint16_t)i2cWire_read() << 8;
     uint16_t phaseEnd = (uint16_t)i2cWire_read();
     phaseEnd |= (uint16_t)i2cWire_read() << 8;
+
+#ifdef PCA9685_ENABLE_SOFTWARE_I2C
+    i2c_stop(); // Manually have to send stop bit in software i2c mode
+#else
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
     Serial.print("  PCA9685::getChannelPWM phaseBegin: ");
@@ -578,6 +585,9 @@ byte PCA9685::readRegister(byte regAddress) {
     if (bytesRead != 1) {
         while (bytesRead-- > 0)
             i2cWire_read();
+#ifdef PCA9685_ENABLE_SOFTWARE_I2C
+        i2c_stop(); // Manually have to send stop bit in software i2c mode
+#else
         _lastI2CError = 4;
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
         checkForErrors();
@@ -586,6 +596,10 @@ byte PCA9685::readRegister(byte regAddress) {
     }
 
     byte retVal = i2cWire_read();
+
+#ifdef PCA9685_ENABLE_SOFTWARE_I2C
+    i2c_stop(); // Manually have to send stop bit in software i2c mode
+#else
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
     Serial.print("    PCA9685::readRegister retVal: 0x");
