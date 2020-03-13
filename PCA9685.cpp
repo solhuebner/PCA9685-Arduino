@@ -19,7 +19,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.10
+    PCA9685-Arduino - Version 1.2.11
 */
 
 #include "PCA9685.h"

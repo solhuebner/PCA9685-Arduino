@@ -22,7 +22,7 @@ void setup() {
 }
 
 void loop() {
-    word pwms[12];
+    uint16_t pwms[12];
     pwms[0] = random(0, 4096);
     pwms[1] = random(0, 4096);
     pwms[2] = random(0, 4096);

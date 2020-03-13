@@ -19,7 +19,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.10
+    PCA9685-Arduino - Version 1.2.11
 */
 
 #ifndef PCA9685_H
@@ -59,6 +59,17 @@
 #endif
 #ifndef PCA9685_ENABLE_SOFTWARE_I2C
 #include <Wire.h>
+
+// Define BUFFER_LENGTH on platforms that don't natively define such.
+#ifndef BUFFER_LENGTH
+#ifdef I2C_BUFFER_LENGTH
+#define BUFFER_LENGTH I2C_BUFFER_LENGTH
+#else
+#warning "i2c BUFFER_LENGTH not defined - using default of 32. Check Wire.h (or similar) file for your hardware and manually define to remove this warning."
+#define BUFFER_LENGTH 32
+#endif
+#endif // /ifndefBUFFER_LENGTH
+
 #endif
 
 #define PCA9685_MODE_INVRT          (byte)0x10  // Inverts polarity of channel output signal
