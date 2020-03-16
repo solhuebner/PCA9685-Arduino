@@ -6,7 +6,7 @@ Arduino Library for the PCA9685 16-Channel PWM Driver Module.
 Library to control a PCA9685 16-channel PWM driver module from an Arduino board.  
 Licensed under the copy-left GNU GPL v3 license.
 
-Created by Kasper Skårhøj, August 3rd, 2012.  
+Created by Kasper SkÃ¥rhÃ¸j, August 3rd, 2012.  
 Forked by Vitska, June 18th, 2016.  
 Forked by NachtRaveVL, July 29th, 2016.
 
@@ -165,14 +165,14 @@ In this example, we utilize the ServoEvaluator class to assist with setting PWM 
 
 PCA9685 pwmController(Wire1, PCA9685_PhaseBalancer_Weaved); // Library using Wire1 and weaved phase balancing scheme
 
-// Linearly interpolates between standard 2.5%/12.5% phase length (102/512) for -90°/+90°
+// Linearly interpolates between standard 2.5%/12.5% phase length (102/512) for -90Â°/+90Â°
 PCA9685_ServoEvaluator pwmServo1;
 
-// Testing our second servo has found that -90° sits at 128, 0° at 324, and +90° at 526.
+// Testing our second servo has found that -90Â° sits at 128, 0Â° at 324, and +90Â° at 526.
 // Since 324 isn't precisely in the middle, a cubic spline will be used to smoothly
 // interpolate PWM values, which will account for said discrepancy. Additionally, since
-// 324 is closer to 128 than 526, there is less resolution in the -90° to 0° range, and
-// more in the 0° to +90° range.
+// 324 is closer to 128 than 526, there is less resolution in the -90Â° to 0Â° range, and
+// more in the 0Â° to +90Â° range.
 PCA9685_ServoEvaluator pwmServo2(128,324,526);
 
 void setup() {
@@ -187,28 +187,28 @@ void setup() {
     pwmController.setPWMFrequency(50);  // 50Hz provides 20ms standard servo phase length
 
     pwmController.setChannelPWM(0, pwmServo1.pwmForAngle(-90));
-    Serial.println(pwmController.getChannelPWM(0)); // Should output 102 for -90°
+    Serial.println(pwmController.getChannelPWM(0)); // Should output 102 for -90Â°
 
-    // Showing linearity for midpoint, 205 away from both -90° and 90°
-    Serial.println(pwmServo1.pwmForAngle(0));   // Should output 307 for 0°
+    // Showing linearity for midpoint, 205 away from both -90Â° and 90Â°
+    Serial.println(pwmServo1.pwmForAngle(0));   // Should output 307 for 0Â°
 
     pwmController.setChannelPWM(0, pwmServo1.pwmForAngle(90));
-    Serial.println(pwmController.getChannelPWM(0)); // Should output 512 for +90°
+    Serial.println(pwmController.getChannelPWM(0)); // Should output 512 for +90Â°
 
     pwmController.setChannelPWM(1, pwmServo2.pwmForAngle(-90));
-    Serial.println(pwmController.getChannelPWM(1)); // Should output 128 for -90°
+    Serial.println(pwmController.getChannelPWM(1)); // Should output 128 for -90Â°
 
-    // Showing less resolution in the -90° to 0° range
-    Serial.println(pwmServo2.pwmForAngle(-45)); // Should output 225 for -45°, 97 away from -90°
+    // Showing less resolution in the -90Â° to 0Â° range
+    Serial.println(pwmServo2.pwmForAngle(-45)); // Should output 225 for -45Â°, 97 away from -90Â°
 
     pwmController.setChannelPWM(1, pwmServo2.pwmForAngle(0));
-    Serial.println(pwmController.getChannelPWM(1)); // Should output 324 for 0°
+    Serial.println(pwmController.getChannelPWM(1)); // Should output 324 for 0Â°
 
-    // Showing more resolution in the 0° to +90° range
-    Serial.println(pwmServo2.pwmForAngle(45));  // Should output 424 for +45°, 102 away from +90°
+    // Showing more resolution in the 0Â° to +90Â° range
+    Serial.println(pwmServo2.pwmForAngle(45));  // Should output 424 for +45Â°, 102 away from +90Â°
 
     pwmController.setChannelPWM(1, pwmServo2.pwmForAngle(90));
-    Serial.println(pwmController.getChannelPWM(1)); // Should output 526 for +90°
+    Serial.println(pwmController.getChannelPWM(1)); // Should output 526 for +90Â°
 }
 
 ```
