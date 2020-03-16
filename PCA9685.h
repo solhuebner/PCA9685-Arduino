@@ -1,5 +1,5 @@
 /*  Arduino Library for the PCA9685 16-Channel PWM Driver Module.
-    Copyright (c) 2016 NachtRaveVL      <nachtravevl@gmail.com>
+    Copyright (C) 2016 NachtRaveVL      <nachtravevl@gmail.com>
     Copyright (C) 2012 Kasper Skårhøj   <kasperskaarhoj@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.11
+    PCA9685-Arduino - Version 1.2.12
 */
 
 #ifndef PCA9685_H
@@ -35,6 +35,9 @@
 
 // Uncomment this define if wanting to exclude ServoEvaluator assistant from compilation.
 //#define PCA9685_EXCLUDE_SERVO_EVAL      1
+
+// Uncomment this define to swap PWM low(begin)/high(end) phase values in register reads/writes (needed for some chip manufacturers).
+//#define PCA9685_SWAP_PWM_BEG_END_REGS   1
 
 // Uncomment this define to enable debug output.
 //#define PCA9685_ENABLE_DEBUG_OUTPUT     1

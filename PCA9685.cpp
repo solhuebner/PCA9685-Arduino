@@ -1,5 +1,5 @@
 /*  Arduino Library for the PCA9685 16-Channel PWM Driver Module.
-    Copyright (c) 2016 NachtRaveVL      <nachtravevl@gmail.com>
+    Copyright (C) 2016 NachtRaveVL      <nachtravevl@gmail.com>
     Copyright (C) 2012 Kasper Skårhøj   <kasperskaarhoj@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.11
+    PCA9685-Arduino - Version 1.2.12
 */
 
 #include "PCA9685.h"
@@ -271,11 +271,18 @@ uint16_t PCA9685::getChannelPWM(int channel) {
         return 0;
     }
 
+#ifndef PCA9685_SWAP_PWM_BEG_END_REGS
     uint16_t phaseBegin = (uint16_t)i2cWire_read();
     phaseBegin |= (uint16_t)i2cWire_read() << 8;
     uint16_t phaseEnd = (uint16_t)i2cWire_read();
     phaseEnd |= (uint16_t)i2cWire_read() << 8;
-
+#else
+    uint16_t phaseEnd = (uint16_t)i2cWire_read();
+    phaseEnd |= (uint16_t)i2cWire_read() << 8;
+    uint16_t phaseBegin = (uint16_t)i2cWire_read();
+    phaseBegin |= (uint16_t)i2cWire_read() << 8;
+#endif
+    
 #ifdef PCA9685_ENABLE_SOFTWARE_I2C
     i2c_stop(); // Manually have to send stop bit in software i2c mode
 #endif
@@ -534,10 +541,17 @@ void PCA9685::writeChannelPWM(uint16_t phaseBegin, uint16_t phaseEnd) {
     Serial.println(phaseEnd);
 #endif
 
+#ifndef PCA9685_SWAP_PWM_BEG_END_REGS
     i2cWire_write(lowByte(phaseBegin));
     i2cWire_write(highByte(phaseBegin));
     i2cWire_write(lowByte(phaseEnd));
     i2cWire_write(highByte(phaseEnd));
+#else
+    i2cWire_write(lowByte(phaseEnd));
+    i2cWire_write(highByte(phaseEnd));
+    i2cWire_write(lowByte(phaseBegin));
+    i2cWire_write(highByte(phaseBegin));
+#endif
 }
 
 void PCA9685::writeChannelEnd() {
