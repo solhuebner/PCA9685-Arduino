@@ -15,7 +15,7 @@ void setup() {
 
     pwmController.resetDevices();       // Software resets all PCA9685 devices on Wire line
 
-    pwmController.init(B010101);        // Address pins A5-A0 set to B010101
+    pwmController.init(B010101);        // Address pins A5-A0 set to B010101, default mode settings
     pwmController.setPWMFrequency(500); // Default is 200Hz, supports 24Hz to 1526Hz
 
     randomSeed(analogRead(0));          // Use white noise for our randomness

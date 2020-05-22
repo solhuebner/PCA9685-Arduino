@@ -19,13 +19,14 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.12
+    PCA9685-Arduino - Version 1.2.13
 */
 
 #ifndef PCA9685_H
 #define PCA9685_H
 
-// Library Setup
+// Library Setup 
+// NOTE: It is recommended to avoid editing library files directly and instead copy these into your own project and uncomment/define, as desired, before the include directive to this library, or through custom build flags.
 
 // Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
 //#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
@@ -42,18 +43,23 @@
 // Uncomment this define to enable debug output.
 //#define PCA9685_ENABLE_DEBUG_OUTPUT     1
 
-// Servo Control Note
+// Servo Control
+// -PLEASE READ-
 // Many 180 degree controlled digital servos run on a 20ms pulse width (50Hz update
 // frequency) based duty cycle, and do not utilize the entire pulse width for their
 // -90/+90 degree control. Typically, 2.5% of the 20ms pulse width (0.5ms) is considered
 // -90 degrees, and 12.5% of the 20ms pulse width (2.5ms) is considered +90 degrees. This
-// roughly translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096 value
+// /roughly/ translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096 value
 // range) for -90 to +90 degree control, but may need to be adjusted to fit your specific
-// servo (e.g. some I've tested run ~130 to ~525 for their -90/+90 degree control). Also
-// be aware that driving some servos past their -90/+90 degrees of movement can cause a
-// little plastic limiter pin to break off and get stuck inside of the gearing, which
-// could potentially cause the servo to become jammed. See the PCA9685_ServoEvaluator
-// class to assist with calculating PWM values from Servo angle values.
+// servo (e.g. some I've tested run ~130 to ~525 for their -90/+90 degree control).
+//
+// -ALSO-
+// Please be aware that driving some servos past their -90/+90 degrees of movement can
+// cause a little plastic limiter pin to break off and get stuck inside of the gearing,
+// which could potentially cause the servo to become jammed and -NO LONGER FUNCTION-.
+//
+// See the PCA9685_ServoEvaluator class to assist with calculating PWM values from Servo
+// angle values, if you desire that level of fine tuning.
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #include <Arduino.h>
@@ -68,18 +74,27 @@
 #ifdef I2C_BUFFER_LENGTH
 #define BUFFER_LENGTH I2C_BUFFER_LENGTH
 #else
-#warning "i2c BUFFER_LENGTH not defined - using default of 32. Check Wire.h (or similar) file for your hardware and manually define to remove this warning."
+#warning "i2c BUFFER_LENGTH not defined - using default of 32, which may not be supported by your microcontroller's hardware. Check Wire.h (or similar) file for your hardware and manually define to remove this warning."
 #define BUFFER_LENGTH 32
 #endif
-#endif // /ifndefBUFFER_LENGTH
+#endif // /ifndef BUFFER_LENGTH
 
 #endif
 
-#define PCA9685_MODE_INVRT          (byte)0x10  // Inverts polarity of channel output signal
-#define PCA9685_MODE_OUTPUT_ONACK   (byte)0x08  // Channel update happens upon ACK (post-set) rather than on STOP (endTransmission)
-#define PCA9685_MODE_OUTPUT_TPOLE   (byte)0x04  // Use a totem-pole (push-pull) style output, typical for boards using this chipset
-#define PCA9685_MODE_OUTNE_HIGHZ    (byte)0x02  // For active low output enable, sets channel output to high-impedance state
-#define PCA9685_MODE_OUTNE_LOW      (byte)0x01  // Similarly, sets channel output to high if in totem-pole mode, otherwise high-impedance state
+// Channel update strategy used when multiple channels are being updated in batch:
+#define PCA9685_MODE_OCH_ONACK      (byte)0x08  // Channel updates commit after individual channel update ACK signal, instead of after full-transmission STOP signal
+
+// Output-enabled/active-low-OE=0 driver control modes (see datasheet Table 12 and Fig 13, 14, and 15 concerning correct usage of INVRT and OUTDRV):
+#define PCA9685_MODE_INVRT          (byte)0x10  // Enables channel output polarity inversion (applicable only when active-low-OE=0)
+#define PCA9685_MODE_OUTDRV_TPOLE   (byte)0x04  // Enables totem-pole (instead of open-drain) style structure to be used for driving channel output, allowing use of an external channel output driver
+// NOTE: 1) Chipset's board must support this feature (most do, some don't)
+//       2) When in this mode, INVRT mode should be set according to if an external N-type external driver (should use INVRT) or P-type external driver (should not use INVRT) is more optimal
+//       3) From datasheet Table 6. subnote [1]: "Some newer LEDs include integrated Zener diodes to limit voltage transients, reduce EMI, and protect the LEDs, and these -MUST BE- driven only in the open-drain mode to prevent overheating the IC."
+
+// Output-not-enabled/active-low-OE=1 driver control modes (see datasheet Section 7.4 concerning correct usage of OUTNE):
+// NOTE: Active-low-OE pin is typically used to synchronize multiple PCA9685 devices together to the same clock cycle.
+#define PCA9685_MODE_OUTNE_HIGHZ    (byte)0x02  // Sets all channel outputs to high-impedance state (applicable only when active-low-OE=1)
+#define PCA9685_MODE_OUTNE_TPHIGH   (byte)0x01  // Sets all channel outputs to HIGH (applicable only when in totem-pole mode and active-low-OE=1)
 
 #define PCA9685_MIN_CHANNEL         0
 #define PCA9685_MAX_CHANNEL         15
@@ -92,6 +107,7 @@ typedef enum {
 
     PCA9685_PhaseBalancer_Count
 } PCA9685_PhaseBalancer;
+// NOTE: Phase balancing essentially means that the start of the high phase cycle, for each channel, is shifted by some amount, so that a large sink doesn't occur all at once.
 
 class PCA9685 {
 public:
@@ -116,7 +132,7 @@ public:
     // Called in setup(). The i2c address here is the value of the A0, A1, A2, A3, A4 and
     // A5 pins ONLY, as the class takes care of its internal base address. i2cAddress
     // should be a value between 0 and 61, since only 62 boards can be addressed.
-    void init(byte i2cAddress = 0, byte mode = PCA9685_MODE_OUTPUT_ONACK | PCA9685_MODE_OUTPUT_TPOLE);
+    void init(byte i2cAddress = 0, byte mode = 0x00);
 
 #ifndef PCA9685_EXCLUDE_EXT_FUNC
     // Called in setup(). Used when instance talks through to AllCall/Sub1-Sub3 instances
@@ -128,7 +144,7 @@ public:
     byte getI2CAddress();
     PCA9685_PhaseBalancer getPhaseBalancer();
 
-    // Min: 24Hz, Max: 1526Hz, Default: 200Hz (resolution widens as Hz goes higher)
+    // Min: 24Hz, Max: 1526Hz, Default: 200Hz (as Hz increases channel resolution widens, but raw pre-scaler value, as computed per datasheet, also becomes less affected inversly)
     void setPWMFrequency(float pwmFrequency);
 
     // Turns channel either full on or full off
@@ -173,7 +189,7 @@ private:
     TwoWire *_i2cWire;          // Wire class instance to use
 #endif
     byte _i2cAddress;           // Module's i2c address
-    PCA9685_PhaseBalancer _phaseBalancer; // Phase balancer scheme to distribute load
+    PCA9685_PhaseBalancer _phaseBalancer; // Phase balancer scheme to distribute load across phase range
     bool _isProxyAddresser;     // Instance is a proxy for sub addressing (disables certain functionality)
     byte _lastI2CError;         // Last i2c error
 

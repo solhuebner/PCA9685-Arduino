@@ -26,7 +26,7 @@ void setup() {
 
     pwmController.resetDevices();       // Software resets all PCA9685 devices on Wire line
 
-    pwmController.init(B000000);        // Address pins A5-A0 set to B000000
+    pwmController.init(B000000);        // Address pins A5-A0 set to B000000, default mode settings
     pwmController.setPWMFrequency(50);  // 50Hz provides 20ms standard servo phase length
 
     pwmController.setChannelPWM(0, pwmServo1.pwmForAngle(-90));

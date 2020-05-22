@@ -1,7 +1,7 @@
 # PCA9685-Arduino
 Arduino Library for the PCA9685 16-Channel PWM Driver Module.
 
-**PCA9685-Arduino - Version 1.2.11**
+**PCA9685-Arduino - Version 1.2.13**
 
 Library to control a PCA9685 16-channel PWM driver module from an Arduino board.  
 Licensed under the copy-left GNU GPL v3 license.
@@ -18,6 +18,8 @@ The datasheet for the IC is available from <http://www.nxp.com/documents/data_sh
 
 There are several defines inside of the library's header file that allows for more fine-tuned control.
 
+It is recommended to avoid editing library files directly and instead copy these into your own project and uncomment/define, as desired, before the include directive to this library, or through custom build flags.
+
 ```Arduino
 // Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
 //#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
@@ -32,9 +34,13 @@ There are several defines inside of the library's header file that allows for mo
 //#define PCA9685_ENABLE_DEBUG_OUTPUT     1
 ```
 
-## Servo Control Note
+## Servo Control
 
-Many 180 degree controlled digital servos run on a 20ms pulse width (50Hz update frequency) based duty cycle, and do not utilize the entire pulse width for their -90/+90 degree control. Typically, 2.5% of the 20ms pulse width (0.5ms) is considered -90 degrees, and 12.5% of the 20ms pulse width (2.5ms) is considered +90 degrees. This roughly translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096 value range) for -90 to +90 degree control, but may need to be adjusted to fit your specific servo (e.g. some I've tested run ~130 to ~525 for their -90/+90 degree control). Also be aware that driving some servos past their -90/+90 degrees of movement can cause a little plastic limiter pin to break off and get stuck inside of the gearing, which could potentially cause the servo to become jammed. See the PCA9685_ServoEvaluator class to assist with calculating PWM values from Servo angle values.
+Many 180 degree controlled digital servos run on a 20ms pulse width (50Hz update frequency) based duty cycle, and do not utilize the entire pulse width for their -90/+90 degree control. Typically, 2.5% of the 20ms pulse width (0.5ms) is considered -90 degrees, and 12.5% of the 20ms pulse width (2.5ms) is considered +90 degrees. This roughly translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096 value range) for -90 to +90 degree control, but may need to be adjusted to fit your specific servo (e.g. some I've tested run ~130 to ~525 for their -90/+90 degree control).
+
+Also, please be aware that driving some servos past their -90/+90 degrees of movement can cause a little plastic limiter pin to break off and get stuck inside of the gearing, which could potentially cause the servo to become jammed and no longer function.
+
+See the PCA9685_ServoEvaluator class to assist with calculating PWM values from Servo angle values, if you desire that level of fine tuning.
 
 ## Example Usage
 
@@ -55,7 +61,7 @@ void setup() {
 
     pwmController.resetDevices();       // Software resets all PCA9685 devices on Wire line
 
-    pwmController.init(B000000);        // Address pins A5-A0 set to B000000
+    pwmController.init(B000000);        // Address pins A5-A0 set to B000000, default mode settings
     pwmController.setPWMFrequency(100); // Default is 200Hz, supports 24Hz to 1526Hz
 
     pwmController.setChannelPWM(0, 128 << 4); // Set PWM to 128/255, but in 4096 land
@@ -83,7 +89,7 @@ void setup() {
 
     pwmController.resetDevices();       // Software resets all PCA9685 devices on Wire line
 
-    pwmController.init(B010101);        // Address pins A5-A0 set to B010101
+    pwmController.init(B010101);        // Address pins A5-A0 set to B010101, default mode settings
     pwmController.setPWMFrequency(500); // Default is 200Hz, supports 24Hz to 1526Hz
 
     randomSeed(analogRead(0));          // Use white noise for our randomness
@@ -133,8 +139,8 @@ void setup() {
 
     pwmController1.resetDevices();      // Software resets all PCA9685 devices on Wire line (including pwmController2 in this case)
 
-    pwmController1.init(B000000);       // Address pins A5-A0 set to B000000
-    pwmController2.init(B000001);       // Address pins A5-A0 set to B000001
+    pwmController1.init(B000000);       // Address pins A5-A0 set to B000000, default mode settings
+    pwmController2.init(B000001);       // Address pins A5-A0 set to B000001, default mode settings
 
     pwmController1.setChannelOff(0);    // Turn channel 0 off
     pwmController2.setChannelOff(0);    // On both
@@ -183,7 +189,7 @@ void setup() {
 
     pwmController.resetDevices();       // Software resets all PCA9685 devices on Wire line
 
-    pwmController.init(B000000);        // Address pins A5-A0 set to B000000
+    pwmController.init(B000000);        // Address pins A5-A0 set to B000000, default mode settings
     pwmController.setPWMFrequency(50);  // 50Hz provides 20ms standard servo phase length
 
     pwmController.setChannelPWM(0, pwmServo1.pwmForAngle(-90));
@@ -247,7 +253,7 @@ void setup() {
 
     pwmController.resetDevices();       // Software resets all PCA9685 devices on software I2C line
 
-    pwmController.init(B000000);        // Address pins A5-A0 set to B000000
+    pwmController.init(B000000);        // Address pins A5-A0 set to B000000, default mode settings
 
     pwmController.setChannelPWM(0, 2048); // Should see a 50% duty cycle along the 5ms phase width
 }
@@ -303,7 +309,7 @@ Mode1 Register:
 Mode2 Register:
   PCA9685::readRegister regAddress: 0x1
     PCA9685::readRegister retVal: 0xC
-0xC, Bitset: PCA9685_MODE_OUTPUT_ONACK PCA9685_MODE_OUTPUT_TPOLE
+0xC, Bitset:
 
 SubAddress1 Register:
   PCA9685::readRegister regAddress: 0x2

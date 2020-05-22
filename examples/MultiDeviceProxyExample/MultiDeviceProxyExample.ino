@@ -18,8 +18,8 @@ void setup() {
 
     pwmController1.resetDevices();      // Software resets all PCA9685 devices on Wire line (including pwmController2 in this case)
 
-    pwmController1.init(B000000);       // Address pins A5-A0 set to B000000
-    pwmController2.init(B000001);       // Address pins A5-A0 set to B000001
+    pwmController1.init(B000000);       // Address pins A5-A0 set to B000000, default mode settings
+    pwmController2.init(B000001);       // Address pins A5-A0 set to B000001, default mode settings
 
     pwmController1.setChannelOff(0);    // Turn channel 0 off
     pwmController2.setChannelOff(0);    // On both

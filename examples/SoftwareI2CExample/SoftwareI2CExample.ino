@@ -28,7 +28,7 @@ void setup() {
 
     pwmController.resetDevices();       // Software resets all PCA9685 devices on software I2C line
 
-    pwmController.init(B000000);        // Address pins A5-A0 set to B000000
+    pwmController.init(B000000);        // Address pins A5-A0 set to B000000, default mode settings
 
     pwmController.setChannelPWM(0, 2048); // Should see a 50% duty cycle along the 5ms phase width
 }

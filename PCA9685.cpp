@@ -735,14 +735,14 @@ void PCA9685::printModuleInfo() {
         Serial.print(", Bitset:");
         if (mode2Reg & PCA9685_MODE_INVRT)
             Serial.print(" PCA9685_MODE_INVRT");
-        if (mode2Reg & PCA9685_MODE_OUTPUT_ONACK)
-            Serial.print(" PCA9685_MODE_OUTPUT_ONACK");
-        if (mode2Reg & PCA9685_MODE_OUTPUT_TPOLE)
-            Serial.print(" PCA9685_MODE_OUTPUT_TPOLE");
+        if (mode2Reg & PCA9685_MODE_OCH_ONACK)
+            Serial.print(" PCA9685_MODE_OCH_ONACK");
+        if (mode2Reg & PCA9685_MODE_OUTDRV_TPOLE)
+            Serial.print(" PCA9685_MODE_OUTDRV_TPOLE");
         if (mode2Reg & PCA9685_MODE_OUTNE_HIGHZ)
             Serial.print(" PCA9685_MODE_OUTNE_HIGHZ");
-        if (mode2Reg & PCA9685_MODE_OUTNE_LOW)
-            Serial.print(" PCA9685_MODE_OUTNE_LOW");
+        if (mode2Reg & PCA9685_MODE_OUTNE_TPHIGH)
+            Serial.print(" PCA9685_MODE_OUTNE_TPHIGH");
         Serial.println("");
 
         Serial.println(""); Serial.println("SubAddress1 Register:");
