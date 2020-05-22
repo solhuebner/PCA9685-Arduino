@@ -34,6 +34,29 @@ It is recommended to avoid editing library files directly and instead copy these
 //#define PCA9685_ENABLE_DEBUG_OUTPUT     1
 ```
 
+## Init Mode Flags
+
+There are several init mode flags exposed through this library that can also be used for more fine-tuned control.
+
+```Arduino
+// Channel update strategy used when multiple channels are being updated in batch:
+#define PCA9685_MODE_OCH_ONACK      (byte)0x08  // Channel updates commit after individual channel update ACK signal, instead of after full-transmission STOP signal
+
+// Output-enabled/active-low-OE-pin=LOW driver control modes (see datasheet Table 12 and Fig 13, 14, and 15 concerning correct usage of INVRT and OUTDRV):
+#define PCA9685_MODE_INVRT          (byte)0x10  // Enables channel output polarity inversion (applicable only when active-low-OE-pin=LOW)
+#define PCA9685_MODE_OUTDRV_TPOLE   (byte)0x04  // Enables totem-pole (instead of open-drain) style structure to be used for driving channel output, allowing use of an external output driver
+// NOTE: 1) Chipset's board must support this feature (most do, some don't)
+//       2) When in this mode, INVRT mode should be set according to if an external N-type external driver (should use INVRT) or P-type external driver (should not use INVRT) is more optimal
+//       3) From datasheet Table 6. subnote [1]: "Some newer LEDs include integrated Zener diodes to limit voltage transients, reduce EMI, and protect the LEDs, and these -MUST BE- driven only in the open-drain mode to prevent overheating the IC."
+
+// Output-not-enabled/active-low-OE-pin=HIGH driver control modes (see datasheet Section 7.4 concerning correct usage of OUTNE):
+// NOTE: Active-low-OE pin is typically used to synchronize multiple PCA9685 devices together, or as an external dimming control signal.
+#define PCA9685_MODE_OUTNE_HIGHZ    (byte)0x02  // Sets all channel outputs to high-impedance state (applicable only when active-low-OE-pin=HIGH)
+#define PCA9685_MODE_OUTNE_TPHIGH   (byte)0x01  // Sets all channel outputs to HIGH (applicable only when in totem-pole mode and active-low-OE-pin=HIGH)
+```
+
+These init mode flags can be treated as a bitfield, and can be bitwise-OR'ed together to combine multiple flags together. The default init mode of the library (as of v1.2.13) is to not use any of these additional flags. See Section 7.3.2 of the datasheet for more details.
+
 ## Servo Control
 
 Many 180 degree controlled digital servos run on a 20ms pulse width (50Hz update frequency) based duty cycle, and do not utilize the entire pulse width for their -90/+90 degree control. Typically, 2.5% of the 20ms pulse width (0.5ms) is considered -90 degrees, and 12.5% of the 20ms pulse width (2.5ms) is considered +90 degrees. This roughly translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096 value range) for -90 to +90 degree control, but may need to be adjusted to fit your specific servo (e.g. some I've tested run ~130 to ~525 for their -90/+90 degree control).

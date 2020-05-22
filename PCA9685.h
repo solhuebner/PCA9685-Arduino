@@ -84,17 +84,17 @@
 // Channel update strategy used when multiple channels are being updated in batch:
 #define PCA9685_MODE_OCH_ONACK      (byte)0x08  // Channel updates commit after individual channel update ACK signal, instead of after full-transmission STOP signal
 
-// Output-enabled/active-low-OE=0 driver control modes (see datasheet Table 12 and Fig 13, 14, and 15 concerning correct usage of INVRT and OUTDRV):
-#define PCA9685_MODE_INVRT          (byte)0x10  // Enables channel output polarity inversion (applicable only when active-low-OE=0)
-#define PCA9685_MODE_OUTDRV_TPOLE   (byte)0x04  // Enables totem-pole (instead of open-drain) style structure to be used for driving channel output, allowing use of an external channel output driver
+// Output-enabled/active-low-OE-pin=LOW driver control modes (see datasheet Table 12 and Fig 13, 14, and 15 concerning correct usage of INVRT and OUTDRV):
+#define PCA9685_MODE_INVRT          (byte)0x10  // Enables channel output polarity inversion (applicable only when active-low-OE-pin=LOW)
+#define PCA9685_MODE_OUTDRV_TPOLE   (byte)0x04  // Enables totem-pole (instead of open-drain) style structure to be used for driving channel output, allowing use of an external output driver
 // NOTE: 1) Chipset's board must support this feature (most do, some don't)
 //       2) When in this mode, INVRT mode should be set according to if an external N-type external driver (should use INVRT) or P-type external driver (should not use INVRT) is more optimal
 //       3) From datasheet Table 6. subnote [1]: "Some newer LEDs include integrated Zener diodes to limit voltage transients, reduce EMI, and protect the LEDs, and these -MUST BE- driven only in the open-drain mode to prevent overheating the IC."
 
-// Output-not-enabled/active-low-OE=1 driver control modes (see datasheet Section 7.4 concerning correct usage of OUTNE):
-// NOTE: Active-low-OE pin is typically used to synchronize multiple PCA9685 devices together to the same clock cycle.
-#define PCA9685_MODE_OUTNE_HIGHZ    (byte)0x02  // Sets all channel outputs to high-impedance state (applicable only when active-low-OE=1)
-#define PCA9685_MODE_OUTNE_TPHIGH   (byte)0x01  // Sets all channel outputs to HIGH (applicable only when in totem-pole mode and active-low-OE=1)
+// Output-not-enabled/active-low-OE-pin=HIGH driver control modes (see datasheet Section 7.4 concerning correct usage of OUTNE):
+// NOTE: Active-low-OE pin is typically used to synchronize multiple PCA9685 devices together, or as an external dimming control signal.
+#define PCA9685_MODE_OUTNE_HIGHZ    (byte)0x02  // Sets all channel outputs to high-impedance state (applicable only when active-low-OE-pin=HIGH)
+#define PCA9685_MODE_OUTNE_TPHIGH   (byte)0x01  // Sets all channel outputs to HIGH (applicable only when in totem-pole mode and active-low-OE-pin=HIGH)
 
 #define PCA9685_MIN_CHANNEL         0
 #define PCA9685_MAX_CHANNEL         15
@@ -107,7 +107,7 @@ typedef enum {
 
     PCA9685_PhaseBalancer_Count
 } PCA9685_PhaseBalancer;
-// NOTE: Phase balancing essentially means that the start of the high phase cycle, for each channel, is shifted by some amount, so that a large sink doesn't occur all at once.
+// NOTE: Phase balancing essentially means that the start of the high phase cycle, for each channel, is shifted by some amount, so that a large voltage sink doesn't occur all at once.
 
 class PCA9685 {
 public:
