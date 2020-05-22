@@ -296,7 +296,7 @@ i2c Address:
 0x40
 
 Phase Balancer:
-PCA9685_PhaseBalancer_Weaved
+PCA9685_PhaseBalancer_Linear
 
 Proxy Addresser:
 false
@@ -308,8 +308,8 @@ Mode1 Register:
 
 Mode2 Register:
   PCA9685::readRegister regAddress: 0x1
-    PCA9685::readRegister retVal: 0xC
-0xC, Bitset:
+    PCA9685::readRegister retVal: 0x0
+0x0, Bitset:
 
 SubAddress1 Register:
   PCA9685::readRegister regAddress: 0x2
