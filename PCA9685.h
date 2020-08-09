@@ -48,15 +48,16 @@
 // Many 180 degree controlled digital servos run on a 20ms pulse width (50Hz update
 // frequency) based duty cycle, and do not utilize the entire pulse width for their
 // -90/+90 degree control. Typically, 2.5% of the 20ms pulse width (0.5ms) is considered
-// -90 degrees, and 12.5% of the 20ms pulse width (2.5ms) is considered +90 degrees. This
-// /roughly/ translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096 value
-// range) for -90 to +90 degree control, but may need to be adjusted to fit your specific
-// servo (e.g. some I've tested run ~130 to ~525 for their -90/+90 degree control).
+// -90 degrees, and 12.5% of the 20ms pulse width (2.5ms) is considered +90 degrees.
+// This roughly translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096
+// value range) for -90 to +90 degree control, but may need to be adjusted to fit your
+// specific servo (e.g. some I've tested run ~130 to ~525 for their -90/+90 degree
+// control).
 //
 // -ALSO-
 // Please be aware that driving some servos past their -90/+90 degrees of movement can
 // cause a little plastic limiter pin to break off and get stuck inside of the gearing,
-// which could potentially cause the servo to become jammed and -NO LONGER FUNCTION-.
+// which could potentially cause the servo to become jammed and no longer function.
 //
 // See the PCA9685_ServoEvaluator class to assist with calculating PWM values from Servo
 // angle values, if you desire that level of fine tuning.
@@ -79,7 +80,7 @@
 #endif
 #endif // /ifndef BUFFER_LENGTH
 
-#endif
+#endif // /ifndef PCA9685_ENABLE_SOFTWARE_I2C
 
 // Channel update strategy used when multiple channels are being updated in batch:
 #define PCA9685_MODE_OCH_ONACK      (byte)0x08  // Channel updates commit after individual channel update ACK signal, instead of after full-transmission STOP signal
@@ -87,7 +88,7 @@
 // Output-enabled/active-low-OE-pin=LOW driver control modes (see datasheet Table 12 and Fig 13, 14, and 15 concerning correct usage of INVRT and OUTDRV):
 #define PCA9685_MODE_INVRT          (byte)0x10  // Enables channel output polarity inversion (applicable only when active-low-OE-pin=LOW)
 #define PCA9685_MODE_OUTDRV_TPOLE   (byte)0x04  // Enables totem-pole (instead of open-drain) style structure to be used for driving channel output, allowing use of an external output driver
-// NOTE: 1) Chipset's board must support this feature (most do, some don't)
+// NOTE: 1) Chipset's breakout must support this feature (most do, some don't)
 //       2) When in this mode, INVRT mode should be set according to if an external N-type external driver (should use INVRT) or P-type external driver (should not use INVRT) is more optimal
 //       3) From datasheet Table 6. subnote [1]: "Some newer LEDs include integrated Zener diodes to limit voltage transients, reduce EMI, and protect the LEDs, and these -MUST BE- driven only in the open-drain mode to prevent overheating the IC."
 

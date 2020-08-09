@@ -45,7 +45,7 @@ There are several init mode flags exposed through this library that can also be 
 // Output-enabled/active-low-OE-pin=LOW driver control modes (see datasheet Table 12 and Fig 13, 14, and 15 concerning correct usage of INVRT and OUTDRV):
 #define PCA9685_MODE_INVRT          (byte)0x10  // Enables channel output polarity inversion (applicable only when active-low-OE-pin=LOW)
 #define PCA9685_MODE_OUTDRV_TPOLE   (byte)0x04  // Enables totem-pole (instead of open-drain) style structure to be used for driving channel output, allowing use of an external output driver
-// NOTE: 1) Chipset's board must support this feature (most do, some don't)
+// NOTE: 1) Chipset's breakout must support this feature (most do, some don't)
 //       2) When in this mode, INVRT mode should be set according to if an external N-type external driver (should use INVRT) or P-type external driver (should not use INVRT) is more optimal
 //       3) From datasheet Table 6. subnote [1]: "Some newer LEDs include integrated Zener diodes to limit voltage transients, reduce EMI, and protect the LEDs, and these -MUST BE- driven only in the open-drain mode to prevent overheating the IC."
 
@@ -70,6 +70,7 @@ See the PCA9685_ServoEvaluator class to assist with calculating PWM values from 
 Below are several examples of library usage.
 
 ### Simple Example
+
 ```Arduino
 #include <Wire.h>
 #include "PCA9685.h"
@@ -186,7 +187,9 @@ void setup() {
 
 ### Servo Evaluator Example
 
-In this example, we utilize the ServoEvaluator class to assist with setting PWM frequencies when working with servos. We will be using Wire1, which is only available on boards with SDA1/SCL1 (Due, Zero, etc.) - change to Wire if Wire1 is unavailable.
+In this example, we utilize the ServoEvaluator class to assist with setting PWM frequencies when working with servos.
+
+We will be using Wire1, which is only available on boards with SDA1/SCL1 (Due, Zero, etc.) - change to Wire if Wire1 is unavailable.
 
 ```Arduino
 #include <Wire.h>
@@ -244,16 +247,21 @@ void setup() {
 
 ### Software I2C Example
 
-In this example, we utilize the software I2C functionality for chips that do not have a hardware I2C bus. We must uncomment the PCA9685_ENABLE_SOFTWARE_I2C define in the libraries main header file for software I2C mode to be enabled.
+In this example, we utilize the software I2C functionality for chips that do not have a hardware I2C bus.
 
-In PCA9685.h:
+If one defines `PCA9685_ENABLE_SOFTWARE_I2C`, such as before the include directive to this library, as a compilation flag, or by directly editing the library headers (not recommended), software I2C mode will be enabled.
+
+From PCA9685.h:
 ```Arduino
 // Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
-#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
+//#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 ```
 
 In main sketch:
 ```Arduino
+// Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
+#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
+
 #include "PCA9685.h"
 
 #define SCL_PIN 2                       // Setup defines are written before library include
@@ -285,17 +293,21 @@ void setup() {
 
 ## Module Info
 
-If one uncomments the PCA9685_ENABLE_DEBUG_OUTPUT define in the libraries main header file (thus enabling debug output) the printModuleInfo() method becomes available, which will display information about the module itself, including initalized states, register values, current settings, etc. All calls being made will display internal debug information about the structure of the call itself. An example of this output is shown here:
+In this example, we enable debug output support.
 
-In PCA9685.h:
+If one defines `PCA9685_ENABLE_DEBUG_OUTPUT`, such as before the include directive to this library, as a compilation flag, or by directly editing the library headers (not recommended), debug output support will be enabled and the printModuleInfo() method becomes available. Calling this method will display information about the module itself, including initalized states, register values, current settings, etc. All library calls being made will also display internal debug information about the structure of the call itself. An example of this output is shown below.
+
+From PCA9685.h:
 ```Arduino
 // Uncomment this define to enable debug output.
-#define PCA9685_ENABLE_DEBUG_OUTPUT     1
+//#define PCA9685_ENABLE_DEBUG_OUTPUT       1
 ```
 
 In main sketch:
 ```Arduino
-#include <Wire.h>
+// Uncomment this define to enable debug output.
+#define PCA9685_ENABLE_DEBUG_OUTPUT     1
+
 #include "PCA9685.h"
 
 PCA9685 pwmController;
