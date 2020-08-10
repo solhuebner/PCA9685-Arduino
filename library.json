@@ -1,7 +1,7 @@
 {
     "name": "PCA9685-Arduino",
     "version": "1.2.13",
-    "keywords": "PCA9685, Arduino, PWM, controller, driver",
+    "keywords": "PCA9685, pwm, i2c, controller, driver",
     "description": "Library to control a PCA9685 16-channel PWM driver module from an Arduino board.",
     "license": "GPL-3.0-or-later",
     "authors": [
@@ -20,12 +20,10 @@
             "url": "https://github.com/kasperskaarhoj"
         }
     ],
+    "homepage": "https://github.com/NachtRaveVL/PCA9685-Arduino/",
     "repository": {
         "type": "git",
         "url": "https://github.com/NachtRaveVL/PCA9685-Arduino.git"
-    },
-    "export": {
-        "include": "Wire"
     },
     "frameworks": "arduino",
     "platforms": "*"
