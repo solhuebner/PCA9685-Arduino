@@ -1,7 +1,7 @@
 # PCA9685-Arduino
 Arduino Library for the PCA9685 16-Channel PWM Driver Module.
 
-**PCA9685-Arduino - Version 1.2.13**
+**PCA9685-Arduino - Version 1.2.14**
 
 Library to control a PCA9685 16-channel PWM driver module from an Arduino board.  
 Licensed under the copy-left GNU GPL v3 license.
@@ -16,10 +16,11 @@ The datasheet for the IC is available from <http://www.nxp.com/documents/data_sh
 
 ## Library Setup
 
-There are several defines inside of the library's header file that allows for more fine-tuned control.
+### Header Defines
 
-It is recommended to avoid editing library files directly and instead copy these into your own project and uncomment/define, as desired, before the include directive to this library, or through custom build flags.
+There are several defines inside of the library's main header file that allow for more fine-tuned control of the library. You may edit and uncomment these lines directly, or supply them as a compilation flag via custom build system. While editing the main header file isn't the most ideal, it is often the easiest way when using the Arduino IDE, as it doesn't support custom build flags. Be aware that editing this header file directly will affect all projects on your system using this library.
 
+In PCA9685.h:
 ```Arduino
 // Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
 //#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
@@ -34,10 +35,13 @@ It is recommended to avoid editing library files directly and instead copy these
 //#define PCA9685_ENABLE_DEBUG_OUTPUT     1
 ```
 
-## Init Mode Flags
+### Library Initialization
 
-There are several init mode flags exposed through this library that can also be used for more fine-tuned control.
+There are several initialization mode flags exposed through this library that are used for more fine-tuned control. These flags are expected to be provided to the library's 'init(...)' function, commonly called inside of the sketch's `setup()` function. These init mode flags can be treated as a bitfield, and can be bitwise-OR'ed together to combine multiple flags together. The default init mode of the library, if left unspecified, is `PCA9685_MODE_OUTDRV_TPOLE`, which seems to work for most of the PCA9685 breakouts on market, but may be incorrect for custom PCA9685 integrations.
 
+See Section 7.3.2 of the datasheet for more details.
+
+From PCA9685.h:
 ```Arduino
 // Channel update strategy used when multiple channels are being updated in batch:
 #define PCA9685_MODE_OCH_ONACK      (byte)0x08  // Channel updates commit after individual channel update ACK signal, instead of after full-transmission STOP signal
@@ -55,9 +59,9 @@ There are several init mode flags exposed through this library that can also be 
 #define PCA9685_MODE_OUTNE_TPHIGH   (byte)0x01  // Sets all channel outputs to HIGH (applicable only when in totem-pole mode and active-low-OE-pin=HIGH)
 ```
 
-These init mode flags can be treated as a bitfield, and can be bitwise-OR'ed together to combine multiple flags together. The default init mode of the library (as of v1.2.13) is to not use any of these additional flags. See Section 7.3.2 of the datasheet for more details.
+## Hookup Callouts
 
-## Servo Control
+### Servo Control
 
 Many 180 degree controlled digital servos run on a 20ms pulse width (50Hz update frequency) based duty cycle, and do not utilize the entire pulse width for their -90/+90 degree control. Typically, 2.5% of the 20ms pulse width (0.5ms) is considered -90 degrees, and 12.5% of the 20ms pulse width (2.5ms) is considered +90 degrees. This roughly translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096 value range) for -90 to +90 degree control, but may need to be adjusted to fit your specific servo (e.g. some I've tested run ~130 to ~525 for their -90/+90 degree control).
 
@@ -249,19 +253,16 @@ void setup() {
 
 In this example, we utilize the software I2C functionality for chips that do not have a hardware I2C bus.
 
-If one defines `PCA9685_ENABLE_SOFTWARE_I2C`, such as before the include directive to this library, as a compilation flag, or by directly editing the library headers (not recommended), software I2C mode will be enabled.
+If one uncomments the line below inside the main header file (or defines it via custom build flag), software I2C mode for the library will be enabled.
 
-From PCA9685.h:
+In PCA9685.h:
 ```Arduino
 // Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
-//#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
+#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 ```
 
 In main sketch:
 ```Arduino
-// Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
-#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
-
 #include "PCA9685.h"
 
 #define SCL_PIN 2                       // Setup defines are written before library include
@@ -295,19 +296,16 @@ void setup() {
 
 In this example, we enable debug output support.
 
-If one defines `PCA9685_ENABLE_DEBUG_OUTPUT`, such as before the include directive to this library, as a compilation flag, or by directly editing the library headers (not recommended), debug output support will be enabled and the printModuleInfo() method becomes available. Calling this method will display information about the module itself, including initalized states, register values, current settings, etc. All library calls being made will also display internal debug information about the structure of the call itself. An example of this output is shown below.
+If one uncomments the line below inside the main header file (or defines it via custom build flag), debug output support will be enabled and the printModuleInfo() method will become available. Calling this method will display information about the module itself, including initalized states, register values, current settings, etc. Additionally, all library calls being made will display internal debug information about the structure of the call itself. An example of this output is shown below.
 
-From PCA9685.h:
+In PCA9685.h:
 ```Arduino
 // Uncomment this define to enable debug output.
-//#define PCA9685_ENABLE_DEBUG_OUTPUT       1
+#define PCA9685_ENABLE_DEBUG_OUTPUT       1
 ```
 
 In main sketch:
 ```Arduino
-// Uncomment this define to enable debug output.
-#define PCA9685_ENABLE_DEBUG_OUTPUT     1
-
 #include "PCA9685.h"
 
 PCA9685 pwmController;

@@ -19,17 +19,17 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.13
+    PCA9685-Arduino - Version 1.2.14
 */
 
 #ifndef PCA9685_H
 #define PCA9685_H
 
-// Library Setup 
+// Library Setup
 
-// NOTE: It is recommended to avoid editing library files directly and instead copy these
-// into your own project and uncomment/define, as desired, before the include directive
-// to this library, or through custom build flags.
+// NOTE: It is recommended to avoid editing library files directly and instead use custom
+// build flags. While most custom build systems support such, the Arduino IDE does not.
+// Be aware that editing this file directly will affect all projects using this library.
 
 // Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
 //#define PCA9685_ENABLE_SOFTWARE_I2C     1   // http://playground.arduino.cc/Main/SoftwareI2CLibrary
@@ -46,7 +46,7 @@
 // Uncomment this define to enable debug output.
 //#define PCA9685_ENABLE_DEBUG_OUTPUT     1
 
-// Servo Control
+// Hookup Callout: Servo Control
 // -PLEASE READ-
 // Many 180 degree controlled digital servos run on a 20ms pulse width (50Hz update
 // frequency) based duty cycle, and do not utilize the entire pulse width for their
@@ -136,7 +136,7 @@ public:
     // Called in setup(). The i2c address here is the value of the A0, A1, A2, A3, A4 and
     // A5 pins ONLY, as the class takes care of its internal base address. i2cAddress
     // should be a value between 0 and 61, since only 62 boards can be addressed.
-    void init(byte i2cAddress = 0, byte mode = 0x00);
+    void init(byte i2cAddress = 0, byte mode = PCA9685_MODE_OUTDRV_TPOLE);
 
 #ifndef PCA9685_EXCLUDE_EXT_FUNC
     // Called in setup(). Used when instance talks through to AllCall/Sub1-Sub3 instances
