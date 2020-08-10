@@ -25,6 +25,38 @@
         "type": "git",
         "url": "https://github.com/NachtRaveVL/PCA9685-Arduino.git"
     },
+    "examples": [
+        {
+            "name": "SimpleExample",
+            "base": "examples/SimpleExample",
+            "files": ["SimpleExample.ino"]
+        },
+        {
+            "name": "BatchingExample",
+            "base": "examples/BatchingExample",
+            "files": ["BatchingExample.ino"]
+        },
+        {
+            "name": "MultiDeviceProxyExample",
+            "base": "examples/MultiDeviceProxyExample",
+            "files": ["MultiDeviceProxyExample.ino"]
+        },
+        {
+            "name": "ServoEvaluatorExample",
+            "base": "examples/ServoEvaluatorExample",
+            "files": ["ServoEvaluatorExample.ino"]
+        },
+        {
+            "name": "SoftwareI2CExample",
+            "base": "examples/SoftwareI2CExample",
+            "files": ["SoftwareI2CExample.ino"]
+        },
+        {
+            "name": "ModuleInfo",
+            "base": "examples/ModuleInfo",
+            "files": ["ModuleInfo.ino"]
+        }
+    ],
     "frameworks": "arduino",
     "platforms": "*"
 }
