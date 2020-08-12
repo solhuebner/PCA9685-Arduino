@@ -37,7 +37,7 @@ In PCA9685.h:
 
 ### Library Initialization
 
-There are several initialization mode flags exposed through this library that are used for more fine-tuned control. These flags are expected to be provided to the library's 'init(...)' function, commonly called inside of the sketch's `setup()` function. These init mode flags can be treated as a bitfield, and can be bitwise-OR'ed together to combine multiple flags together. The default init mode of the library, if left unspecified, is `PCA9685_MODE_OUTDRV_TPOLE`, which seems to work for most of the PCA9685 breakouts on market, but may be incorrect for custom PCA9685 integrations.
+There are several initialization mode flags exposed through this library that are used for more fine-tuned control. These flags are expected to be provided to the library's `init(...)` function, commonly called inside of the sketch's `setup()` function. These init mode flags can be treated as a bitfield, and can be bitwise-OR'ed together to combine multiple flags together. The default init mode of the library, if left unspecified, is `PCA9685_MODE_OUTDRV_TPOLE`, which seems to work for most of the PCA9685 breakouts on market, but may be incorrect for custom PCA9685 integrations.
 
 See Section 7.3.2 of the datasheet for more details.
 
