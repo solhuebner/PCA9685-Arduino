@@ -69,6 +69,18 @@ Also, please be aware that driving some servos past their -90/+90 degrees of mov
 
 See the PCA9685_ServoEvaluator class to assist with calculating PWM values from Servo angle values, if you desire that level of fine tuning.
 
+## Memory Callouts
+
+### Extended Functions
+
+This library has an extended list of functionality for those who care to dive into such, but isn't always particularly the most useful for various general use cases. If one uncomments the line below inside the main header file (or defines it via custom build flag), this extended functionality can be manually compiled-out.
+
+In PCA9685.h:
+```Arduino
+// Uncomment this define if wanting to exclude extended functionality from compilation.
+#define PCA9685_EXCLUDE_EXT_FUNC        1
+```
+
 ## Example Usage
 
 Below are several examples of library usage.
