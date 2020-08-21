@@ -3,10 +3,9 @@
 // frequencies when working with servos. We will be using Wire1, which is only available
 // on boards with SDA1/SCL1 (Due, Zero, etc.) - change to Wire if Wire1 is unavailable.
 
-#include <Wire.h>
 #include "PCA9685.h"
 
-PCA9685 pwmController(Wire1, PCA9685_PhaseBalancer_Weaved); // Library using Wire1 and weaved phase balancing scheme
+PCA9685 pwmController(Wire1);           // Library using Wire1 @400kHz, and default B000000 (A5-A0) i2c address
 
 // Linearly interpolates between standard 2.5%/12.5% phase length (102/512) for -90°/+90°
 PCA9685_ServoEvaluator pwmServo1;
@@ -19,15 +18,13 @@ PCA9685_ServoEvaluator pwmServo1;
 PCA9685_ServoEvaluator pwmServo2(128,324,526);
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(115200);               // Library will begin Wire1, so we just need to begin Serial
 
-    Wire1.begin();                      // Wire must be started first
-    Wire1.setClock(400000);             // Supported baud rates are 100kHz, 400kHz, and 1000kHz
+    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins Wire1
 
-    pwmController.resetDevices();       // Software resets all PCA9685 devices on Wire line
+    pwmController.init();        		// Initializes module using default totem-pole mode, and default disabled phase balancer
 
-    pwmController.init(B000000);        // Address pins A5-A0 set to B000000, default mode settings
-    pwmController.setPWMFrequency(50);  // 50Hz provides 20ms standard servo phase length
+    pwmController.setPWMFrequency(50);  // 50Hz provides standard 20ms servo phase length
 
     pwmController.setChannelPWM(0, pwmServo1.pwmForAngle(-90));
     Serial.println(pwmController.getChannelPWM(0)); // Should output 102 for -90°

@@ -2,32 +2,30 @@
 // In this example, we use a special instance to control other modules attached to it via
 // the ALL_CALL register.
 
-#include <Wire.h>
 #include "PCA9685.h"
 
-PCA9685 pwmController1;                 // Library using default Wire and default linear phase balancing scheme
-PCA9685 pwmController2;                 // Library using default Wire and default linear phase balancing scheme
+PCA9685 pwmController1(B000000);        // Library using B000000 (A5-A0) i2c address, and default Wire @400kHz
+PCA9685 pwmController2(B000001);        // Library using B000001 (A5-A0) i2c address, and default Wire @400kHz
 
-PCA9685 pwmControllerAll;               // Not a real device, will act as a proxy to pwmController1 and pwmController2
+// Not a real device, will act as a proxy to pwmController1 and pwmController2, using all-call i2c address 0xE0, and default Wire @400kHz
+PCA9685 pwmControllerAll(PCA9685_I2C_DEF_ALLCALL_PROXYADR);
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(115200);               // Library will begin Wire, so we just need to begin Serial
 
-    Wire.begin();                       // Wire must be started first
-    Wire.setClock(400000);              // Supported baud rates are 100kHz, 400kHz, and 1000kHz
+    pwmControllerAll.resetDevices();    // Resets all PCA9685 devices on i2c line, also begins Wire
 
-    pwmController1.resetDevices();      // Software resets all PCA9685 devices on Wire line (including pwmController2 in this case)
+    pwmController1.init();              // Initializes first module using default totem-pole mode, and default disabled phase balancer
+    pwmController2.init();              // Initializes second module using default totem-pole mode, and default disabled phase balancer
 
-    pwmController1.init(B000000);       // Address pins A5-A0 set to B000000, default mode settings
-    pwmController2.init(B000001);       // Address pins A5-A0 set to B000001, default mode settings
+    pwmControllerAll.initAsProxyAddresser(); // Initializes 'fake' module as all-call proxy addresser
+
+    // Enables all-call support to module from 'fake' all-call proxy addresser
+    pwmController1.enableAllCallAddress(pwmControllerAll.getI2CAddress());
+    pwmController2.enableAllCallAddress(pwmControllerAll.getI2CAddress()); // On both
 
     pwmController1.setChannelOff(0);    // Turn channel 0 off
     pwmController2.setChannelOff(0);    // On both
-
-    pwmController1.enableAllCallAddress(); // Default address of 0xE0
-    pwmController2.enableAllCallAddress(); // Same default address
-
-    pwmControllerAll.initAsProxyAddresser(); // Same default address of 0x0E as used in enable above
 
     pwmControllerAll.setChannelPWM(0, 4096); // Enables full on on both pwmController1 and pwmController2
 
