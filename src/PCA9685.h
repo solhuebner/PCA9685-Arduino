@@ -171,10 +171,10 @@ public:
     // Boards with more than one i2c line (e.g. Due/Zero/etc.) may use a different Wire
     // instance, such as Wire1 (which uses SDA1/SCL1 pins), Wire2 (SDA2/SCL2), etc.
     // Supported i2c clock speeds are 100kHz, 400kHz (default), and 1000kHz.
-    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire, int i2cSpeed = 400000);
+    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire, uint32_t i2cSpeed = 400000);
 
     // Convenience constructor for custom Wire instance. See main constructor.
-    PCA9685(TwoWire& i2cWire, int i2cSpeed = 400000, byte i2cAddress = B000000);
+    PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
 #else
     // Library constructor. Typically called during class instantiation, before setup().
     // The i2c address should be the value of the A5-A0 pins, as the class handles the
@@ -217,6 +217,7 @@ public:
 
     // Mode accessors
     byte getI2CAddress();
+    uint32_t getI2CSpeed();
     PCA9685_OutputDriverMode getOutputDriverMode();
     PCA9685_OutputEnabledMode getOutputEnabledMode();
     PCA9685_OutputDisabledMode getOutputDisabledMode();
@@ -270,7 +271,7 @@ protected:
     byte _i2cAddress;                                       // Module's i2c address (default: B000000)
 #ifndef PCA9685_USE_SOFTWARE_I2C
     TwoWire* _i2cWire;                                      // Wire class instance (unowned) (default: Wire)
-    int _i2cSpeed;                                          // Module's i2c clock speed (default: 400000)
+    uint32_t _i2cSpeed;                                     // Module's i2c clock speed (default: 400000)
 #endif
     PCA9685_OutputDriverMode _driverMode;                   // Output driver mode
     PCA9685_OutputEnabledMode _enabledMode;                 // OE enabled output mode

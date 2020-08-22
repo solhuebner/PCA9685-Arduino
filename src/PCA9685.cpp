@@ -50,7 +50,7 @@ bool PCA9685::_i2cBegan = false;
 
 #ifndef PCA9685_USE_SOFTWARE_I2C
 
-PCA9685::PCA9685(byte i2cAddress, TwoWire& i2cWire, int i2cSpeed)
+PCA9685::PCA9685(byte i2cAddress, TwoWire& i2cWire, uint32_t i2cSpeed)
     // I2C 7-bit address is B 1 A5 A4 A3 A2 A1 A0
     // RW lsb bit added by Arduino core TWI library
     : _i2cAddress(i2cAddress),
@@ -64,7 +64,7 @@ PCA9685::PCA9685(byte i2cAddress, TwoWire& i2cWire, int i2cSpeed)
       _lastI2CError(0)
 { }
 
-PCA9685(TwoWire& i2cWire, int i2cSpeed, byte i2cAddress)
+PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed, byte i2cAddress)
     : _i2cAddress(i2cAddress),
       _i2cWire(&i2cWire), _i2cSpeed(i2cSpeed),
       _driverMode(PCA9685_OutputDriverMode_Undefined),
@@ -144,10 +144,8 @@ void PCA9685::init(PCA9685_OutputDriverMode driverMode,
     Serial.print(_i2cAddress, HEX);
     Serial.print(", i2cWire#: ");
     Serial.print(getWireInterfaceNumber());
-#ifndef PCA9685_USE_SOFTWARE_I2C
     Serial.print(", i2cSpeed: ");
-    Serial.print(roundf(_i2cSpeed / 1000.0f)); Serial.print("kHz");
-#endif
+    Serial.print(roundf(getI2CSpeed() / 1000.0f)); Serial.print("kHz");
     Serial.println("");
 #endif
 
@@ -182,10 +180,8 @@ void PCA9685::initAsProxyAddresser() {
     Serial.print(_i2cAddress, HEX);
     Serial.print(", i2cWire#: ");
     Serial.print(getWireInterfaceNumber());
-#ifndef PCA9685_USE_SOFTWARE_I2C
     Serial.print(", i2cSpeed: ");
-    Serial.print(roundf(_i2cSpeed / 1000.0f)); Serial.print("kHz");
-#endif
+    Serial.print(roundf(getI2CSpeed() / 1000.0f)); Serial.print("kHz");
     Serial.println("");
 #endif
 
@@ -200,6 +196,20 @@ void PCA9685::initAsProxyAddresser() {
 
 byte PCA9685::getI2CAddress() {
     return _i2cAddress;
+}
+
+uint32_t PCA9685::getI2CSpeed() {
+#ifndef PCA9685_USE_SOFTWARE_I2C
+    return _i2cSpeed;
+#else
+#if I2C_FASTMODE
+    return 400000;
+#elif I2C_SLOWMODE
+    return 25000;
+#else
+    return 100000;
+#endif
+#endif // ifndef PCA9685_USE_SOFTWARE_I2C
 }
 
 PCA9685_OutputDriverMode PCA9685::getOutputDriverMode() {
@@ -734,7 +744,7 @@ void PCA9685::i2cWire_begin() {
     _lastI2CError = 0;
 #ifndef PCA9685_USE_SOFTWARE_I2C
     _i2cWire->begin();
-    _i2cWire->setClock(_i2cSpeed);
+    _i2cWire->setClock(getI2CSpeed());
 #else
     if (!i2c_init()) _lastI2CError = 4;
 #endif
@@ -837,10 +847,8 @@ void PCA9685::printModuleInfo() {
     Serial.print("0x"); Serial.println(_i2cAddress, HEX);
     Serial.println("i2c Instance:");
     Serial.println(textForWireInterfaceNumber(getWireInterfaceNumber()));
-#ifndef PCA9685_USE_SOFTWARE_I2C
     Serial.println("i2c Speed:");
-    Serial.print(roundf(_i2cSpeed / 1000.0f)); Serial.println("kHz");
-#endif
+    Serial.print(roundf(getI2CSpeed() / 1000.0f)); Serial.println("kHz");
 
     Serial.println(""); Serial.println("Phase Balancer:");
     Serial.print(_phaseBalancer); Serial.print(": ");
