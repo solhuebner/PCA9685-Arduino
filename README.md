@@ -407,9 +407,9 @@ In main sketch:
 PCA9685 pwmController;                  // Library using default B000000 (A5-A0) i2c address
 
 void setup() {
-    Serial.begin(115200);               // Library will begin SoftwareSerial, so we just need to begin Serial
+    Serial.begin(115200);               // Library will begin SoftI2C, so we just need to begin Serial
 
-    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins SoftwareSerial
+    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins SoftI2C
 
     // Initializes module using linear phase balancer, and open-drain style driver mode
     pwmController.init(PCA9685_PhaseBalancer_Linear,
