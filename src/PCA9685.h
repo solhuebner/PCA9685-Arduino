@@ -260,8 +260,9 @@ public:
     byte getLastI2CError();
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-    void checkForErrors();
+    int getWireInterfaceNumber();
     void printModuleInfo();
+    void checkForErrors();
 #endif
 
 protected:

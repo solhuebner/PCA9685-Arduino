@@ -134,15 +134,21 @@ void PCA9685::init(PCA9685_OutputDriverMode driverMode,
     Serial.print("PCA9685::init mode2Val: 0x");
     Serial.print(mode2Val, HEX);
     Serial.print(", phaseBalancer: ");
-    Serial.print(_phaseBalancer);
+    switch(_phaseBalancer) {
+        case PCA9685_PhaseBalancer_Linear: Serial.print("Linear"); break;
+        case PCA9685_PhaseBalancer_Weaved: Serial.print("Weaved"); break;
+        case PCA9685_PhaseBalancer_Dynamic: Serial.print("Dynamic"); break;
+        default: Serial.print("<disabled>"); break;
+    }
     Serial.print(", i2cAddress: 0x");
     Serial.print(_i2cAddress, HEX);
+    Serial.print(", i2cWire#: ");
+    Serial.print(getWireInterfaceNumber());
 #ifndef PCA9685_USE_SOFTWARE_I2C
     Serial.print(", i2cSpeed: ");
-    Serial.println(_i2cSpeed);
-#else
-    Serial.println("");
+    Serial.print(roundf(_i2cSpeed / 1000.0f)); Serial.print("kHz");
 #endif
+    Serial.println("");
 #endif
 
     i2cWire_begin();
@@ -174,12 +180,13 @@ void PCA9685::initAsProxyAddresser() {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
     Serial.println("PCA9685::initAsProxyAddresser i2cAddress: 0x");
     Serial.print(_i2cAddress, HEX);
+    Serial.print(", i2cWire#: ");
+    Serial.print(getWireInterfaceNumber());
 #ifndef PCA9685_USE_SOFTWARE_I2C
     Serial.print(", i2cSpeed: ");
-    Serial.println(_i2cSpeed);
-#else
-    Serial.println("");
+    Serial.print(roundf(_i2cSpeed / 1000.0f)); Serial.print("kHz");
 #endif
+    Serial.println("");
 #endif
 
     i2cWire_begin();
@@ -569,34 +576,6 @@ byte PCA9685::getLastI2CError() {
     return _lastI2CError;
 }
 
-#ifdef PCA9685_ENABLE_DEBUG_OUTPUT
-
-static const char *textForI2CError(byte errorCode) {
-    switch (errorCode) {
-    case 0:
-        return "Success";
-    case 1:
-        return "Data too long to fit in transmit buffer";
-    case 2:
-        return "Received NACK on transmit of address";
-    case 3:
-        return "Received NACK on transmit of data";
-    default:
-        return "Other error";
-    }
-}
-
-void PCA9685::checkForErrors() {
-    if (_lastI2CError) {
-        Serial.print("  PCA9685::checkErrors lastI2CError: ");
-        Serial.print(_lastI2CError);
-        Serial.print(": ");
-        Serial.println(textForI2CError(getLastI2CError()));
-    }
-}
-
-#endif
-
 void PCA9685::getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd) {
     // Set delay
     if (channel < 0) {
@@ -813,14 +792,58 @@ uint8_t PCA9685::i2cWire_read(void) {
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
 
+int PCA9685::getWireInterfaceNumber() {
+#ifndef PCA9685_USE_SOFTWARE_I2C
+    if (_i2cWire == &Wire) return 0;
+#if WIRE_INTERFACES_COUNT > 1
+    if (_i2cWire == &Wire1) return 1;
+#endif
+#if WIRE_INTERFACES_COUNT > 2
+    if (_i2cWire == &Wire2) return 2;
+#endif
+#if WIRE_INTERFACES_COUNT > 3
+    if (_i2cWire == &Wire3) return 3;
+#endif
+#if WIRE_INTERFACES_COUNT > 4
+    if (_i2cWire == &Wire4) return 4;
+#endif
+#if WIRE_INTERFACES_COUNT > 5
+    if (_i2cWire == &Wire5) return 5;
+#endif
+#endif // /ifndef PCA9685_USE_SOFTWARE_I2C
+    return -1;
+}
+
+static const char *textForWireInterfaceNumber(int wireNum) {
+#ifndef PCA9685_USE_SOFTWARE_I2C
+    switch (wireNum) {
+        case 0: return "Wire";
+        case 1: return "Wire1";
+        case 2: return "Wire2";
+        case 3: return "Wire3";
+        case 4: return "Wire4";
+        case 5: return "Wire5";
+        default: return "<other>";
+    }
+#else
+    return "SoftwareI2C";
+#endif // /ifndef PCA9685_USE_SOFTWARE_I2C
+}
+
 void PCA9685::printModuleInfo() {
     Serial.println(""); Serial.println(" ~~~ PCA9685 Module Info ~~~");
 
     Serial.println(""); Serial.println("i2c Address:");
-    Serial.print("0x");
-    Serial.println(_i2cAddress, HEX);
+    Serial.print("0x"); Serial.println(_i2cAddress, HEX);
+    Serial.println("i2c Instance:");
+    Serial.println(textForWireInterfaceNumber(getWireInterfaceNumber()));
+#ifndef PCA9685_USE_SOFTWARE_I2C
+    Serial.println("i2c Speed:");
+    Serial.print(roundf(_i2cSpeed / 1000.0f)); Serial.println("kHz");
+#endif
 
     Serial.println(""); Serial.println("Phase Balancer:");
+    Serial.print(_phaseBalancer); Serial.print(": ");
     switch (_phaseBalancer) {
         case PCA9685_PhaseBalancer_None:
             Serial.println("PCA9685_PhaseBalancer_None"); break;
@@ -828,6 +851,8 @@ void PCA9685::printModuleInfo() {
             Serial.println("PCA9685_PhaseBalancer_Linear"); break;
         case PCA9685_PhaseBalancer_Weaved:
             Serial.println("PCA9685_PhaseBalancer_Weaved"); break;
+        case PCA9685_PhaseBalancer_Dynamic:
+            Serial.println("PCA9685_PhaseBalancer_Dynamic"); break;
         default:
             Serial.println(""); break;
     }
@@ -837,9 +862,8 @@ void PCA9685::printModuleInfo() {
         Serial.println("false");
 
         Serial.println(""); Serial.println("Mode1 Register:");
-        byte mode1Reg = readRegister(PCA9685_MODE1_REG);
-        Serial.print("0x");
-        Serial.print(mode1Reg, HEX);
+        const byte mode1Reg = readRegister(PCA9685_MODE1_REG);
+        Serial.print("0x"); Serial.print(mode1Reg, HEX);
         Serial.print(", Bitset:");
         if (mode1Reg & PCA9685_MODE1_RESTART)
             Serial.print(" PCA9685_MODE1_RESTART");
@@ -860,9 +884,8 @@ void PCA9685::printModuleInfo() {
         Serial.println("");
 
         Serial.println(""); Serial.println("Mode2 Register:");
-        byte mode2Reg = readRegister(PCA9685_MODE2_REG);
-        Serial.print("0x");
-        Serial.print(mode2Reg, HEX);
+        const byte mode2Reg = readRegister(PCA9685_MODE2_REG);
+        Serial.print("0x"); Serial.print(mode2Reg, HEX);
         Serial.print(", Bitset:");
         if (mode2Reg & PCA9685_MODE2_OUTDRV_TPOLE)
             Serial.print(" PCA9685_MODE2_OUTDRV_TPOLE");
@@ -877,32 +900,51 @@ void PCA9685::printModuleInfo() {
         Serial.println("");
 
         Serial.println(""); Serial.println("SubAddress1 Register:");
-        byte subAdr1Reg = readRegister(PCA9685_SUBADR1_REG);
-        Serial.print("0x");
-        Serial.println(subAdr1Reg, HEX);
+        const byte subAdr1Reg = readRegister(PCA9685_SUBADR1_REG);
+        Serial.print("0x"); Serial.println(subAdr1Reg, HEX);
 
         Serial.println(""); Serial.println("SubAddress2 Register:");
-        byte subAdr2Reg = readRegister(PCA9685_SUBADR2_REG);
-        Serial.print("0x");
-        Serial.println(subAdr2Reg, HEX);
+        const byte subAdr2Reg = readRegister(PCA9685_SUBADR2_REG);
+        Serial.print("0x"); Serial.println(subAdr2Reg, HEX);
 
         Serial.println(""); Serial.println("SubAddress3 Register:");
-        byte subAdr3Reg = readRegister(PCA9685_SUBADR3_REG);
-        Serial.print("0x");
-        Serial.println(subAdr3Reg, HEX);
+        const byte subAdr3Reg = readRegister(PCA9685_SUBADR3_REG);
+        Serial.print("0x"); Serial.println(subAdr3Reg, HEX);
 
         Serial.println(""); Serial.println("AllCall Register:");
-        byte allCallReg = readRegister(PCA9685_ALLCALL_REG);
-        Serial.print("0x");
-        Serial.println(allCallReg, HEX);
-    }
-    else {
+        const byte allCallReg = readRegister(PCA9685_ALLCALL_REG);
+        Serial.print("0x"); Serial.println(allCallReg, HEX);
+    } else {
         Serial.println(""); Serial.println("Proxy Addresser:");
         Serial.println("true");
     }
 }
 
-#endif
+static const char *textForI2CError(byte errorCode) {
+    switch (errorCode) {
+    case 0:
+        return "Success";
+    case 1:
+        return "Data too long to fit in transmit buffer";
+    case 2:
+        return "Received NACK on transmit of address";
+    case 3:
+        return "Received NACK on transmit of data";
+    default:
+        return "Other error";
+    }
+}
+
+void PCA9685::checkForErrors() {
+    if (_lastI2CError) {
+        Serial.print("  PCA9685::checkErrors lastI2CError: ");
+        Serial.print(_lastI2CError);
+        Serial.print(": ");
+        Serial.println(textForI2CError(getLastI2CError()));
+    }
+}
+
+#endif // /ifdef PCA9685_ENABLE_DEBUG_OUTPUT
 
 
 #ifndef PCA9685_EXCLUDE_SERVO_EVAL
@@ -931,6 +973,7 @@ PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t n90PWMAmount, uint16_t z
         /* "THE BEER-WARE LICENSE" (Revision 42): Devin Lane wrote this [part]. As long as you retain
         * this notice you can do whatever you want with this stuff. If we meet some day, and you
         * think this stuff is worth it, you can buy me a beer in return. */
+       // TODO: Looks like I owe Devin Lane a beer. -NR
 
         float x[3] = { 0, 90, 180 };
         float y[3] = { (float)n90PWMAmount, (float)zeroPWMAmount, (float)p90PWMAmount };
@@ -988,8 +1031,8 @@ uint16_t PCA9685_ServoEvaluator::pwmForAngle(float angle) {
             retVal = _coeff[4] + (_coeff[5] * angle) + (_coeff[6] * angle * angle) + (_coeff[7] * angle * angle * angle);
         }
     }
-    
+
     return (uint16_t)constrain((uint16_t)roundf(retVal), 0, PCA9685_PWM_FULL);
 };
 
-#endif
+#endif // /ifndef PCA9685_EXCLUDE_SERVO_EVAL
