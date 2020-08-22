@@ -202,10 +202,8 @@ uint32_t PCA9685::getI2CSpeed() {
 #ifndef PCA9685_USE_SOFTWARE_I2C
     return _i2cSpeed;
 #else
-#if I2C_FASTMODE
+#if I2C_FASTMODE || F_CPU >= 16000000
     return 400000;
-#elif I2C_SLOWMODE
-    return 25000;
 #else
     return 100000;
 #endif
@@ -731,7 +729,7 @@ byte PCA9685::readRegister(byte regAddress) {
 }
 
 #ifdef PCA9685_USE_SOFTWARE_I2C
-bool __attribute__((noinline)) i2c_init(void);
+boolean __attribute__((noinline)) i2c_init(void);
 bool __attribute__((noinline)) i2c_start(uint8_t addr);
 void __attribute__((noinline)) i2c_stop(void) asm("ass_i2c_stop");
 bool __attribute__((noinline)) i2c_write(uint8_t value) asm("ass_i2c_write");
