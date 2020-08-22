@@ -1,7 +1,7 @@
-// PCA9685-Arduino Software I2C Example
-// In this example, we utilize the software I2C functionality for chips that do not have
-// a hardware I2C bus. If one uncomments the line below inside the main header file (or
-// defines it via custom build flag), software I2C mode for the library will be enabled.
+// PCA9685-Arduino Software i2c Example
+// In this example, we utilize the software i2c library for chips that do not have a
+// hardware i2c bus. If one uncomments the line below inside the main header file (or
+// defines it via custom build flag), software i2c mode for the library will be enabled.
 //
 // In PCA9685.h:
 // // Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).

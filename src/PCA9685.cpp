@@ -196,7 +196,7 @@ void PCA9685::initAsProxyAddresser() {
 #endif
 }
 
-#endif
+#endif // /ifndef PCA9685_EXCLUDE_EXT_FUNC
 
 byte PCA9685::getI2CAddress() {
     return _i2cAddress;
@@ -570,7 +570,7 @@ void PCA9685::enableExtClockLine() {
     delayMicroseconds(500);
 }
 
-#endif
+#endif // /ifndef PCA9685_EXCLUDE_EXT_FUNC
 
 byte PCA9685::getLastI2CError() {
     return _lastI2CError;
