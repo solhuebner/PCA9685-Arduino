@@ -213,7 +213,7 @@ void setup() {
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins Wire
 
-    pwmController.init();               // Initializes module using default totem-pole mode, and default disabled phase balancer
+    pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
 
     pwmController.setPWMFrequency(100); // Set PWM freq to 100Hz (default is 200Hz, supports 24Hz to 1526Hz)
 
@@ -241,7 +241,7 @@ void setup() {
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins Wire
 
-    pwmController.init();               // Initializes module using default totem-pole mode, and default phase balancer
+    pwmController.init();               // Initializes module using default totem-pole driver mode, and default phase balancer
 
     pwmController.setPWMFrequency(500); // Set PWM freq to 500Hz (default is 200Hz, supports 24Hz to 1526Hz)
 
@@ -291,8 +291,8 @@ void setup() {
 
     pwmControllerAll.resetDevices();    // Resets all PCA9685 devices on i2c line, also begins Wire
 
-    pwmController1.init();              // Initializes first module using default totem-pole mode, and default disabled phase balancer
-    pwmController2.init();              // Initializes second module using default totem-pole mode, and default disabled phase balancer
+    pwmController1.init();              // Initializes first module using default totem-pole driver mode, and default disabled phase balancer
+    pwmController2.init();              // Initializes second module using default totem-pole driver mode, and default disabled phase balancer
 
     pwmControllerAll.initAsProxyAddresser(); // Initializes 'fake' module as all-call proxy addresser
 
@@ -343,7 +343,7 @@ void setup() {
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins Wire1
 
-    pwmController.init();               // Initializes module using default totem-pole mode, and default disabled phase balancer
+    pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
 
     pwmController.setPWMFrequency(50);  // 50Hz provides standard 20ms servo phase length
 
@@ -407,7 +407,7 @@ In main sketch:
 PCA9685 pwmController;                  // Library using default B000000 (A5-A0) i2c address
 
 void setup() {
-    Serial.begin(115200);               // Library will begin Wire, so we just need to begin Serial
+    Serial.begin(115200);               // Library will begin SoftwareSerial, so we just need to begin Serial
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins SoftwareSerial
 
@@ -444,7 +444,7 @@ PCA9685 pwmController;                  // Library using default B000000 (A5-A0)
 void setup() {
     Serial.begin(115200);               // Library will begin Wire, so we just need to begin Serial
 
-    pwmController.init();               // Initializes module using default totem-pole mode, default disabled phase balancer, also begins Wire
+    pwmController.init();               // Initializes module using default totem-pole driver mode, default disabled phase balancer, also begins Wire
 
     pwmController.printModuleInfo();    // Prints module diagnostic information
 }

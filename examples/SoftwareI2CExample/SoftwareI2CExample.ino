@@ -23,7 +23,7 @@
 PCA9685 pwmController;                  // Library using default B000000 (A5-A0) i2c address
 
 void setup() {
-    Serial.begin(115200);				// Library will begin Wire, so we just need to begin Serial
+    Serial.begin(115200);				// Library will begin SoftwareSerial, so we just need to begin Serial
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins SoftwareSerial
 

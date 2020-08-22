@@ -15,8 +15,8 @@ void setup() {
 
     pwmControllerAll.resetDevices();    // Resets all PCA9685 devices on i2c line, also begins Wire
 
-    pwmController1.init();              // Initializes first module using default totem-pole mode, and default disabled phase balancer
-    pwmController2.init();              // Initializes second module using default totem-pole mode, and default disabled phase balancer
+    pwmController1.init();              // Initializes first module using default totem-pole driver mode, and default disabled phase balancer
+    pwmController2.init();              // Initializes second module using default totem-pole driver mode, and default disabled phase balancer
 
     pwmControllerAll.initAsProxyAddresser(); // Initializes 'fake' module as all-call proxy addresser
 
