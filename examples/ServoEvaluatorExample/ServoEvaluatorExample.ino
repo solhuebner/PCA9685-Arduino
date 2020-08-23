@@ -1,7 +1,7 @@
 // PCA9685-Arduino Servo Evaluator Example
 // In this example, we utilize the ServoEvaluator class to assist with setting PWM
 // frequencies when working with servos. We will be using Wire1, which is only available
-// on boards with SDA1/SCL1 (Due, Zero, etc.) - change to Wire if Wire1 is unavailable.
+// on boards with SDA1/SCL1 (e.g. Due/Mega/etc.) - change to Wire if Wire1 is unavailable.
 
 #include "PCA9685.h"
 

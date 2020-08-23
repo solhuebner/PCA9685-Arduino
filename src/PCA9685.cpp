@@ -167,8 +167,6 @@ void PCA9685::init(PCA9685_PhaseBalancer phaseBalancer,
     init(driverMode, enabledMode, disabledMode, updateMode, phaseBalancer);
 }
 
-#ifndef PCA9685_EXCLUDE_EXT_FUNC
-
 void PCA9685::initAsProxyAddresser() {
     if (driverMode != PCA9685_OutputDriverMode_Undefined) return;
 
@@ -191,8 +189,6 @@ void PCA9685::initAsProxyAddresser() {
     checkForErrors();
 #endif
 }
-
-#endif // /ifndef PCA9685_EXCLUDE_EXT_FUNC
 
 byte PCA9685::getI2CAddress() {
     return _i2cAddress;
@@ -351,8 +347,6 @@ void PCA9685::setChannelsPWM(int begChannel, int numChannels, const uint16_t *pw
         if (_lastI2CError) return;
     }
 }
-
-#ifndef PCA9685_EXCLUDE_EXT_FUNC
 
 void PCA9685::setAllChannelsPWM(uint16_t pwmAmount) {
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
@@ -577,8 +571,6 @@ void PCA9685::enableExtClockLine() {
     writeRegister(PCA9685_MODE1_REG, (mode1Reg = (mode1Reg & ~PCA9685_MODE1_SLEEP) | PCA9685_MODE1_RESTART));
     delayMicroseconds(500);
 }
-
-#endif // /ifndef PCA9685_EXCLUDE_EXT_FUNC
 
 byte PCA9685::getLastI2CError() {
     return _lastI2CError;
@@ -952,9 +944,6 @@ void PCA9685::checkForErrors() {
 
 #endif // /ifdef PCA9685_ENABLE_DEBUG_OUTPUT
 
-
-#ifndef PCA9685_EXCLUDE_SERVO_EVAL
-
 PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t n90PWMAmount, uint16_t p90PWMAmount) {
     n90PWMAmount = constrain(n90PWMAmount, 0, PCA9685_PWM_FULL);
     p90PWMAmount = constrain(p90PWMAmount, n90PWMAmount, PCA9685_PWM_FULL);
@@ -1040,5 +1029,3 @@ uint16_t PCA9685_ServoEvaluator::pwmForAngle(float angle) {
 
     return (uint16_t)constrain((uint16_t)roundf(retVal), 0, PCA9685_PWM_FULL);
 };
-
-#endif // /ifndef PCA9685_EXCLUDE_SERVO_EVAL

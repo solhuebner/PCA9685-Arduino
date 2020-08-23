@@ -16,25 +16,25 @@ The datasheet for the IC is available from <http://www.nxp.com/documents/data_sh
 
 ## Library Setup
 
+### Installation
+
+The easiest way to install this library is to utilize the Arduino IDE library manager, or through a package manager such as PlatformIO. Otherwise, simply download this library and extract its files into a `PCA9685-Arduino` folder in your Arduino custom libraries folder, typically found in your `[My ]Documents\Arduino\libraries` folder (Windows), or `~/Documents/Arduino/libraries/` folder (Linux/OSX).
+
 ### Header Defines
 
-There are several defines inside of the library's main header file that allow for more fine-tuned control of the library. You may edit and uncomment these lines directly, or supply them as a compilation flag via custom build system. While editing the main header file isn't the most ideal, it is often the easiest way when using the Arduino IDE, as it doesn't support custom build flags. Be aware that editing this header file directly will affect all projects on your system using this library.
+There are several defines inside of the library's main header file that allow for more fine-tuned control of the library. You may edit and uncomment these lines directly, or supply them via custom build flags. While editing the main header file isn't ideal, it is often the easiest given the Arduino IDE's limited custom build flag support. Note that editing the library's main header file directly will affect all projects compiled on your system using those modified library files.
 
-In PCA9685.h:
+Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=602603.0> on how to define custom build flags manually via modifying the platform.[local.]txt file. Note that editing such directly will affect all other projects compiled on your system using those modified platform framework files.
+
+From PCA9685.h:
 ```Arduino
-// Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
+// Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor required).
 //#define PCA9685_ENABLE_SOFTWARE_I2C             // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 
-// Uncomment this define if wanting to exclude extended functionality from compilation.
-//#define PCA9685_EXCLUDE_EXT_FUNC
-
-// Uncomment this define if wanting to exclude ServoEvaluator assistant from compilation.
-//#define PCA9685_EXCLUDE_SERVO_EVAL
-
-// Uncomment this define to swap PWM low(begin)/high(end) phase values in register reads/writes (needed for some chip manufacturers).
+// Uncomment or -D this define to swap PWM low(begin)/high(end) phase values in register reads/writes (needed for some chip manufacturers).
 //#define PCA9685_SWAP_PWM_BEG_END_REGS
 
-// Uncomment this define to enable debug output.
+// Uncomment or -D this define to enable debug output.
 //#define PCA9685_ENABLE_DEBUG_OUTPUT
 ```
 
@@ -52,8 +52,8 @@ From PCA9685.h, in class PCA9685, when in hardware i2c mode:
     // The i2c address should be the value of the A5-A0 pins, as the class handles the
     // module's base i2c address. It should be a value between 0 and 61, which gives a
     // maximum of 62 modules that can be addressed on the same i2c line.
-    // Boards with more than one i2c line (e.g. Due/Zero/etc.) may use a different Wire
-    // instance, such as Wire1 (which uses SDA1/SCL1 pins), Wire2 (SDA2/SCL2), etc.
+    // Boards with more than one i2c line (e.g. Due/Mega/etc.) can supply a different
+    // Wire instance, such as Wire1 (using SDA1/SCL1), Wire2 (using SDA2/SCL2), etc.
     // Supported i2c clock speeds are 100kHz, 400kHz (default), and 1000kHz.
     PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire, uint32_t i2cSpeed = 400000);
 
@@ -75,7 +75,7 @@ From PCA9685.h, in class PCA9685, when in software i2c mode (see examples for sa
 
 #### Device Initialization
 
-Additionally, a call is expected to be provided to the library class object's `init(...)` or `initAsProxyAddresser()` methods, commonly called inside of the sketch's `setup()` function. The `init(...)` method allows one to set the module's driver mode, enabled/disabled output settings, channel update mode, and phase balancer scheme, while the `initAsProxyAddresser()` method allows one to setup the object as a proxy addresser (see examples for sample usage). These methods also begin the supplied Wire instance. The default init values of the library, if left unspecified, is `PCA9685_OutputDriverMode_TotemPole`, `PCA9685_OutputEnabledMode_Normal`, `PCA9685_OutputDisabledMode_Low`, `PCA9685_ChannelUpdateMode_AfterStop`, and `PCA9685_PhaseBalancer_None` which seems to work for most of the PCA9685 breakouts on market, but should be set according to your specific integration.
+Additionally, a call is expected to be provided to the library class object's `init(...)` or `initAsProxyAddresser()` methods, commonly called inside of the sketch's `setup()` function. The `init(...)` method allows one to set the module's driver mode, enabled/disabled output settings, channel update mode, and phase balancer scheme, while the `initAsProxyAddresser()` method allows one to setup the object as a proxy addresser (see examples for sample usage). These methods also begin the supplied Wire instance. The default init values of the library, if left unspecified, is `PCA9685_OutputDriverMode_TotemPole`, `PCA9685_OutputEnabledMode_Normal`, `PCA9685_OutputDisabledMode_Low`, `PCA9685_ChannelUpdateMode_AfterStop`, and `PCA9685_PhaseBalancer_None` which seems to work for most of the PCA9685 breakouts on market, but should be set according to your setup.
 
 See Section 7.3.2 of the datasheet for more details.
 
@@ -109,8 +109,8 @@ From PCA9685.h, in class PCA9685, for init as a proxy addresser (see examples fo
 
 From PCA9685.h:
 ```Arduino
-// Output driver control mode (see datasheet Table 12 and Fig 13, 14, and 15 concerning correct
-// usage of OUTDRV).
+// Output driver control mode (see datasheet Table 12 and Fig 13, 14, and 15 concerning
+// correct usage of OUTDRV).
 enum PCA9685_OutputDriverMode {
     PCA9685_OutputDriverMode_OpenDrain,         // Module outputs in an open-drain style structure, without an external driver
     PCA9685_OutputDriverMode_TotemPole          // Module outputs in a totem-pole style structure, with an external driver (default)
@@ -184,18 +184,6 @@ Many 180 degree controlled digital servos run on a 20ms pulse width (50Hz update
 Also, please be aware that driving some servos past their -90/+90 degrees of movement can cause a little plastic limiter pin to break off and get stuck inside of the gearing, which could potentially cause the servo to become jammed and no longer function.
 
 See the PCA9685_ServoEvaluator class to assist with calculating PWM values from Servo angle values, if you desire that level of fine tuning.
-
-## Memory Callouts
-
-### Extended Functions
-
-This library has an extended list of functionality for those who care to dive into such, but isn't always particularly the most useful for various general use cases. If one uncomments the line below inside the main header file (or defines it via custom build flag), this extended functionality can be manually compiled-out. Alternatively, if using a custom build system, it is recommended to instead use a standard code stripper on the produced binary.
-
-In PCA9685.h:
-```Arduino
-// Uncomment this define if wanting to exclude extended functionality from compilation.
-#define PCA9685_EXCLUDE_EXT_FUNC
-```
 
 ## Example Usage
 
@@ -321,7 +309,7 @@ void loop() {
 
 In this example, we utilize the ServoEvaluator class to assist with setting PWM frequencies when working with servos.
 
-We will be using Wire1, which is only available on boards with SDA1/SCL1 (Due, Zero, etc.) - change to Wire if Wire1 is unavailable.
+We will be using Wire1, which is only available on boards with SDA1/SCL1 (e.g. Due/Mega/etc.) - change to Wire if Wire1 is unavailable.
 
 ```Arduino
 #include "PCA9685.h"
@@ -379,24 +367,32 @@ void loop() {
 
 ### Software i2c Example
 
-In this example, we utilize the software i2c library for chips that do not have a hardware i2c bus.
+In this example, we utilize a popular software i2c library for chips that do not have a hardware i2c bus. This library can be found at <http://playground.arduino.cc/Main/SoftwareI2CLibrary>.
 
-If one uncomments the line below inside the main header file (or defines it via custom build flag), software i2c mode for the library will be enabled.
+If one uncomments the line below inside the main header file (or defines it via custom build flag), software i2c mode for the library will be enabled. Additionally, you will need to correctly define SCL_PIN, SCL_PORT, SDA_PIN, SDA_PORT, and optionally I2C_FASTMODE=1 (if running 16+MHz) according to your setup. Lastly note that, while in software i2c mode, the clock speed returned by the library (via `getI2CSpeed()`) is only an upper bound and may not represent the actual i2c clock speed set nor achieved.
 
 In PCA9685.h:
 ```Arduino
-// Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
+// Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor required).
 #define PCA9685_ENABLE_SOFTWARE_I2C             // http://playground.arduino.cc/Main/SoftwareI2CLibrary
+```  
+Alternatively, in platform.[local.]txt:
+```Arduino
+build.extra_flags=-DPCA9685_ENABLE_SOFTWARE_I2C
 ```
 
 In main sketch:
 ```Arduino
 #include "PCA9685.h"
 
-#define SCL_PIN 2                       // Setup defines for SoftI2CMaster are written before library include
-#define SCL_PORT PORTD 
+// Setup defines for SoftI2CMaster are written before library include. That is because
+// its header contains the full code definition, and should thus be included only once.
+// The values for SCL_PORT and SDA_PORT are dependent upon which pins are used - refer to
+// http://www.arduino.cc/en/Reference/PortManipulation to determine what you should use.
+#define SCL_PIN 2
+#define SCL_PORT PORTD
 #define SDA_PIN 0 
-#define SDA_PORT PORTC 
+#define SDA_PORT PORTC
 
 #if F_CPU >= 16000000
 #define I2C_FASTMODE 1                  // Running a 16MHz processor allows us to use i2c fast mode
@@ -431,8 +427,12 @@ If one uncomments the line below inside the main header file (or defines it via 
 
 In PCA9685.h:
 ```Arduino
-// Uncomment this define to enable debug output.
+// Uncomment or -D this define to enable debug output.
 #define PCA9685_ENABLE_DEBUG_OUTPUT
+```  
+Alternatively, in platform.[local.]txt:
+```Arduino
+build.extra_flags=-DPCA9685_ENABLE_DEBUG_OUTPUT
 ```
 
 In main sketch:

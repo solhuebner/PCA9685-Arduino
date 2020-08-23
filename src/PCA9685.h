@@ -27,23 +27,23 @@
 
 // Library Setup
 
-// NOTE: It is recommended to avoid editing library files directly and instead use custom
-// build flags. While most custom build systems support such, the Arduino IDE does not.
-// Be aware that editing this file directly will affect all projects using this library.
+// NOTE: While editing the main header file isn't ideal, it is often the easiest given
+// the Arduino IDE's limited custom build flag support. Editing this header file directly
+// will affect all projects compiled on your system using these library files.
 
-// Uncomment this define to enable use of the software i2c library (min 4MHz+ processor required).
+// Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor required).
 //#define PCA9685_ENABLE_SOFTWARE_I2C             // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 
-// Uncomment this define if wanting to exclude extended functionality from compilation.
+// Uncomment or -D this define if wanting to exclude extended functionality from compilation.
 //#define PCA9685_EXCLUDE_EXT_FUNC
 
-// Uncomment this define if wanting to exclude ServoEvaluator assistant from compilation.
+// Uncomment or -D this define if wanting to exclude ServoEvaluator assistant from compilation.
 //#define PCA9685_EXCLUDE_SERVO_EVAL
 
-// Uncomment this define to swap PWM low(begin)/high(end) phase values in register reads/writes (needed for some chip manufacturers).
+// Uncomment or -D this define to swap PWM low(begin)/high(end) phase values in register reads/writes (needed for some chip manufacturers).
 //#define PCA9685_SWAP_PWM_BEG_END_REGS
 
-// Uncomment this define to enable debug output.
+// Uncomment or -D this define to enable debug output.
 //#define PCA9685_ENABLE_DEBUG_OUTPUT
 
 // Hookup Callout: Servo Control
@@ -143,7 +143,7 @@ enum PCA9685_ChannelUpdateMode {
 
 // Software-based phase balancing scheme.
 enum PCA9685_PhaseBalancer {
-    PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware to handle current sinkage (ensure 10v 1000μF capacitor is installed on breakout/circuit)  (default)
+    PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware to handle current sinkage (ensure 10v 1000μF capacitor is installed on breakout/circuit) (default)
     PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 256 steps away from previous channel (may cause flickering on PWM changes)
     PCA9685_PhaseBalancer_Weaved,               // Uses weaved software-based phase balancing, with each channel being positioned in a preset weaved distribution that favors fewer/lower-indexed channels (may cause flickering on PWM changes)
     PCA9685_PhaseBalancer_Dynamic,              // Uses dynamic software-based phase balancing, with each modified channel entering an in-use pool that recalculates an automatic linear distribution based on total channels modified/in-use (may cause flickering on PWM changes)
@@ -168,8 +168,8 @@ public:
     // The i2c address should be the value of the A5-A0 pins, as the class handles the
     // module's base i2c address. It should be a value between 0 and 61, which gives a
     // maximum of 62 modules that can be addressed on the same i2c line.
-    // Boards with more than one i2c line (e.g. Due/Zero/etc.) may use a different Wire
-    // instance, such as Wire1 (which uses SDA1/SCL1 pins), Wire2 (SDA2/SCL2), etc.
+    // Boards with more than one i2c line (e.g. Due/Mega/etc.) can supply a different
+    // Wire instance, such as Wire1 (using SDA1/SCL1), Wire2 (using SDA2/SCL2), etc.
     // Supported i2c clock speeds are 100kHz, 400kHz (default), and 1000kHz.
     PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire, uint32_t i2cSpeed = 400000);
 
