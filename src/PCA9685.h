@@ -42,18 +42,18 @@
 
 // Hookup Callouts
 // -PLEASE READ-
-// Many 180 degree controlled digital servos run on a 20ms pulse width (50Hz update
-// frequency) based duty cycle, and do not utilize the entire pulse width for their
-// -90/+90 degree control. Typically, 2.5% of the 20ms pulse width (0.5ms) is considered
-// -90 degrees, and 12.5% of the 20ms pulse width (2.5ms) is considered +90 degrees.
-// This roughly translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096
-// value range) for -90 to +90 degree control. This may need to be adjusted to fit your
-// specific servo (e.g. some I've tested run ~130 to ~525 for their -90/+90 degree
-// control). Be aware that driving some servos past their -90/+90 degrees of movement can
-// cause a little plastic limiter pin to break off and get stuck inside of the gearing,
-// which could potentially cause the servo to become jammed and no longer function.
-// See the PCA9685_ServoEvaluator class to assist with calculating PWM values from Servo
-// angle values, if you desire that level of fine tuning.
+// Many digital servos run on a 20ms pulse width (50Hz update frequency) based duty
+// cycle, and do not utilize the entire pulse width for their control. Typically, 2.5% of
+// the 20ms pulse width (0.5ms) is considered -90 degrees, and 12.5% of the 20ms pulse
+// width (2.5ms) is considered +90 degrees. This roughly translates to raw PCA9685 PWM
+// values of 102 and 512 (out of the 4096 value range) for -90 to +90 degree control.
+// This may need to be adjusted to fit your specific servo (e.g. some I've tested run
+// ~130 to ~525 for their -90/+90 degree control). Be aware that driving some servos past
+// their -90/+90 degrees of movement can cause a little plastic limiter pin to break off
+// and get stuck inside of the gearing, which could potentially cause the servo to become
+// jammed and no longer function. Similarly, continuous servos operate in much the same
+// fashion, but instead of the pulse width controlling a -90/+90 degree offset it
+// controls a -1.0x/+1.0x speed setting.
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #include <Arduino.h>
@@ -288,22 +288,25 @@ protected:
     uint8_t i2cWire_read(void);
 };
 
-// Class to assist with calculating Servo PWM values from angle values
+// Class to assist with calculating Servo PWM values from angle/speed values
 class PCA9685_ServoEvaluator {
 public:
     // Uses a linear interpolation method to quickly compute PWM output value. Uses
-    // default values of 2.5% and 12.5% of phase length for -90/+90.
-    PCA9685_ServoEvaluator(uint16_t n90PWMAmount = 102, uint16_t p90PWMAmount = 512);
+    // default values of 2.5% and 12.5% of phase length for -90/+90 (or -1x/+1x).
+    PCA9685_ServoEvaluator(uint16_t minPWMAmount = 102, uint16_t maxPWMAmount = 512);
 
-    // Uses a cubic spline to interpolate due to an offsetted zero angle that isn't
-    // exactly between -90/+90. This takes more time to compute, but gives a more
-    // accurate PWM output value along the entire range.
-    PCA9685_ServoEvaluator(uint16_t n90PWMAmount, uint16_t zeroPWMAmount, uint16_t p90PWMAmount);
+    // Uses a cubic spline to interpolate due to an offsetted zero point that isn't
+    // exactly between -90/+90 (or -1x/+1x). This takes more time to compute, but gives a
+    // more accurate PWM output value along the entire range.
+    PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t midPWMAmount, uint16_t maxPWMAmount);
 
     ~PCA9685_ServoEvaluator();
 
-    // Returns the PWM value to use given the angle (-90 to +90)
+    // Returns the PWM value to use given the angle offset (-90 to +90)
     uint16_t pwmForAngle(float angle);
+
+    // Returns the PWM value to use given the speed setting (-1 to +1)
+    uint16_t pwmForSpeed(float speed);
 
 private:
     float *_coeff;      // a,b,c,d coefficient values

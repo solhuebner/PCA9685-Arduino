@@ -944,23 +944,23 @@ void PCA9685::checkForErrors() {
 
 #endif // /ifdef PCA9685_ENABLE_DEBUG_OUTPUT
 
-PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t n90PWMAmount, uint16_t p90PWMAmount) {
-    n90PWMAmount = constrain(n90PWMAmount, 0, PCA9685_PWM_FULL);
-    p90PWMAmount = constrain(p90PWMAmount, n90PWMAmount, PCA9685_PWM_FULL);
+PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t maxPWMAmount) {
+    minPWMAmount = constrain(minPWMAmount, 0, PCA9685_PWM_FULL);
+    maxPWMAmount = constrain(maxPWMAmount, minPWMAmount, PCA9685_PWM_FULL);
 
     _coeff = new float[2];
     _isCSpline = false;
 
-    _coeff[0] = n90PWMAmount;
-    _coeff[1] = (p90PWMAmount - n90PWMAmount) / 180.0f;
+    _coeff[0] = minPWMAmount;
+    _coeff[1] = (maxPWMAmount - minPWMAmount) / 180.0f;
 }
 
-PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t n90PWMAmount, uint16_t zeroPWMAmount, uint16_t p90PWMAmount) {
-    n90PWMAmount = constrain(n90PWMAmount, 0, PCA9685_PWM_FULL);
-    zeroPWMAmount = constrain(zeroPWMAmount, n90PWMAmount, PCA9685_PWM_FULL);
-    p90PWMAmount = constrain(p90PWMAmount, zeroPWMAmount, PCA9685_PWM_FULL);
+PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t midPWMAmount, uint16_t maxPWMAmount) {
+    minPWMAmount = constrain(minPWMAmount, 0, PCA9685_PWM_FULL);
+    midPWMAmount = constrain(midPWMAmount, minPWMAmount, PCA9685_PWM_FULL);
+    maxPWMAmount = constrain(maxPWMAmount, midPWMAmount, PCA9685_PWM_FULL);
 
-    if (p90PWMAmount - zeroPWMAmount != zeroPWMAmount - n90PWMAmount) {
+    if (maxPWMAmount - midPWMAmount != midPWMAmount - minPWMAmount) {
         _coeff = new float[8];
         _isCSpline = true;
 
@@ -971,7 +971,7 @@ PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t n90PWMAmount, uint16_t z
        // TODO: Looks like I owe Devin Lane a beer. -NR
 
         float x[3] = { 0, 90, 180 };
-        float y[3] = { (float)n90PWMAmount, (float)zeroPWMAmount, (float)p90PWMAmount };
+        float y[3] = { (float)minPWMAmount, (float)midPWMAmount, (float)maxPWMAmount };
         float c[3], b[2], d[2], h[2], l[1], u[2], a[1], z[2]; // n = 3
 
         h[0] = x[1] - x[0];
@@ -1001,8 +1001,8 @@ PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t n90PWMAmount, uint16_t z
         _coeff = new float[2];
         _isCSpline = false;
 
-        _coeff[0] = n90PWMAmount;
-        _coeff[1] = (p90PWMAmount - n90PWMAmount) / 180.0f;
+        _coeff[0] = minPWMAmount;
+        _coeff[1] = (maxPWMAmount - minPWMAmount) / 180.0f;
     }
 }
 
@@ -1029,3 +1029,7 @@ uint16_t PCA9685_ServoEvaluator::pwmForAngle(float angle) {
 
     return (uint16_t)constrain((uint16_t)roundf(retVal), 0, PCA9685_PWM_FULL);
 };
+
+uint16_t PCA9685_ServoEvaluator::pwmForSpeed(float speed) {
+    return pwmForAngle(speed * 90.0f);
+}
