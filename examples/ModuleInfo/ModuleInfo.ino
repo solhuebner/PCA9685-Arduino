@@ -5,9 +5,9 @@
 // printModuleInfo() method will become available. Calling this method will display
 // information about the module itself, including initalized states, register values,
 // current settings, etc. Additionally, all library calls being made will display
-// internal debug information about the structure of the call itself.
-// You may refer to https://forum.arduino.cc/index.php?topic=602603.0 on how to define
-// custom build flags manually via modifying platform.[local.]txt.
+// internal debug information about the structure of the call itself. You may refer to
+// https://forum.arduino.cc/index.php?topic=602603.0 on how to define custom build flags
+// manually via modifying platform.[local.]txt.
 //
 // In PCA9685.h:
 // // Uncomment or -D this define to enable debug output.

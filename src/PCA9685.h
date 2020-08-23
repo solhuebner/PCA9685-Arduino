@@ -31,14 +31,8 @@
 // the Arduino IDE's limited custom build flag support. Editing this header file directly
 // will affect all projects compiled on your system using these library files.
 
-// Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor required).
+// Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor).
 //#define PCA9685_ENABLE_SOFTWARE_I2C             // http://playground.arduino.cc/Main/SoftwareI2CLibrary
-
-// Uncomment or -D this define if wanting to exclude extended functionality from compilation.
-//#define PCA9685_EXCLUDE_EXT_FUNC
-
-// Uncomment or -D this define if wanting to exclude ServoEvaluator assistant from compilation.
-//#define PCA9685_EXCLUDE_SERVO_EVAL
 
 // Uncomment or -D this define to swap PWM low(begin)/high(end) phase values in register reads/writes (needed for some chip manufacturers).
 //#define PCA9685_SWAP_PWM_BEG_END_REGS
@@ -206,14 +200,12 @@ public:
               PCA9685_OutputDisabledMode disabledMode = PCA9685_OutputDisabledMode_Low,
               PCA9685_ChannelUpdateMode updateMode = PCA9685_ChannelUpdateMode_AfterStop);
 
-#ifndef PCA9685_EXCLUDE_EXT_FUNC
     // Initializes module as a proxy addresser, also begins Wire instance. Typically
     // called in setup(). Used when instance talks through to AllCall/Sub1-Sub3 instances
     // as a proxy object. Using this method will disable any method that performs a read
     // or conflicts with certain states. Proxy addresser i2c addresses must be >= 0xE0,
     // with defaults provided via PCA9685_I2C_DEF_[ALLCALL|SUB[1-3]]_PROXYADR defines.
     void initAsProxyAddresser();
-#endif
 
     // Mode accessors
     byte getI2CAddress();
@@ -235,7 +227,6 @@ public:
     void setChannelPWM(int channel, uint16_t pwmAmount);
     void setChannelsPWM(int begChannel, int numChannels, const uint16_t *pwmAmounts);
 
-#ifndef PCA9685_EXCLUDE_EXT_FUNC
     // Sets all channels, but won't distribute phases
     void setAllChannelsPWM(uint16_t pwmAmount);
 
@@ -256,7 +247,6 @@ public:
 
     // Allows external clock line to be utilized (once enabled cannot be disabled)
     void enableExtClockLine();
-#endif
 
     byte getLastI2CError();
 
@@ -302,8 +292,6 @@ protected:
     uint8_t i2cWire_read(void);
 };
 
-#ifndef PCA9685_EXCLUDE_SERVO_EVAL
-
 // Class to assist with calculating Servo PWM values from angle values
 class PCA9685_ServoEvaluator {
 public:
@@ -326,6 +314,4 @@ private:
     bool _isCSpline;    // Cubic spline tracking, for _coeff length
 };
 
-#endif
-
-#endif 
+#endif // /ifndef PCA9685_H

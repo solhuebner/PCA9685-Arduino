@@ -28,7 +28,7 @@ Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=6
 
 From PCA9685.h:
 ```Arduino
-// Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor required).
+// Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor).
 //#define PCA9685_ENABLE_SOFTWARE_I2C             // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 
 // Uncomment or -D this define to swap PWM low(begin)/high(end) phase values in register reads/writes (needed for some chip manufacturers).
@@ -369,11 +369,11 @@ void loop() {
 
 In this example, we utilize a popular software i2c library for chips that do not have a hardware i2c bus. This library can be found at <http://playground.arduino.cc/Main/SoftwareI2CLibrary>.
 
-If one uncomments the line below inside the main header file (or defines it via custom build flag), software i2c mode for the library will be enabled. Additionally, you will need to correctly define SCL_PIN, SCL_PORT, SDA_PIN, SDA_PORT, and optionally I2C_FASTMODE=1 (if running 16+MHz) according to your setup. Lastly note that, while in software i2c mode, the clock speed returned by the library (via `getI2CSpeed()`) is only an upper bound and may not represent the actual i2c clock speed set nor achieved.
+If one uncomments the line below inside the main header file (or defines it via custom build flag), software i2c mode for the library will be enabled. Additionally, you will need to correctly define SCL_PIN, SCL_PORT, SDA_PIN, and SDA_PORT according to your setup. I2C_FASTMODE=1 should be set for 16MHz+ processors. Lastly note that, while in software i2c mode, the clock speed returned by the library (via `getI2CSpeed()`) is only an upper bound and may not represent the actual i2c clock speed set nor achieved.
 
 In PCA9685.h:
 ```Arduino
-// Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor required).
+// Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor).
 #define PCA9685_ENABLE_SOFTWARE_I2C             // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 ```  
 Alternatively, in platform.[local.]txt:

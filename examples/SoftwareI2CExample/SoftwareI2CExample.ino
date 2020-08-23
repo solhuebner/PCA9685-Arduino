@@ -2,13 +2,13 @@
 // In this example, we utilize a popular software i2c library for chips that do not have
 // a hardware i2c bus. If one uncomments the line below inside the main header file (or
 // defines it via custom build flag), software i2c mode for the library will be enabled.
-// Additionally, you will need to correctly define SCL_PIN, SCL_PORT, SDA_PIN, SDA_PORT,
-// and optionally I2C_FASTMODE=1 (if running 16+MHz) according to your setup.
+// Additionally, you will need to correctly define SCL_PIN, SCL_PORT, SDA_PIN, and
+// SDA_PORT according to your setup. I2C_FASTMODE=1 should be set for 16MHz+ processors.
 // You may refer to https://forum.arduino.cc/index.php?topic=602603.0 on how to define
 // custom build flags manually via modifying platform.[local.]txt.
 //
 // In LeptonFLiR.h:
-// // Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor required).
+// // Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor).
 // #define PCA9685_ENABLE_SOFTWARE_I2C             // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 //
 // Alternatively, in platform.[local.]txt:
