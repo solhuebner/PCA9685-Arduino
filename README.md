@@ -10,9 +10,11 @@ Created by Kasper Skårhøj, August 3rd, 2012.
 Forked by Vitska, June 18th, 2016.  
 Forked by NachtRaveVL, July 29th, 2016.
 
-This library allows communication with boards running a PCA6985 16-channel PWM driver module. It supports a wide range of available functionality, from setting the output PWM frequecy, allowing multi-device proxy addressing, and provides an assistant class for working with Servos. Newer versions should work with PlatformIO, ESP32/8266, Teensy, and others (although one might want to ensure BUFFER_LENGTH or I2C_BUFFER_LENGTH is properly defined for those architectures).
+This library allows communication with boards running a PCA6985 16-channel PWM driver module. It supports a wide range of available functionality, from setting the output PWM frequecy, allowing multi-device proxy addressing, and provides an assistant class for working with Servos.
 
-The datasheet for the IC is available from <http://www.nxp.com/documents/data_sheet/PCA9685.pdf>.
+Made primarily for Arduino microcontrollers, but should work with PlatformIO, ESP32/8266, Teensy, and others - although one might want to ensure BUFFER_LENGTH (or I2C_BUFFER_LENGTH) and WIRE_INTERFACES_COUNT is properly defined for any architecture used.
+
+The datasheet for the IC is available at <http://www.nxp.com/documents/data_sheet/PCA9685.pdf>.
 
 ## Library Setup
 
