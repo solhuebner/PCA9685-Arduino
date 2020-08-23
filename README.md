@@ -67,9 +67,9 @@ From PCA9685.h, in class PCA9685, when in software i2c mode (see examples for sa
     // The i2c address should be the value of the A5-A0 pins, as the class handles the
     // module's base i2c address. It should be a value between 0 and 61, which gives a
     // maximum of 62 modules that can be addressed on the same i2c line.
-    // Minimum supported i2c clock speed is 100kHz, which means minimum supported processor
-    // speed is 4MHz+ while running i2c standard mode. For 400kHz i2c clock speed, minimum
-    // supported processor speed is 16MHz+ while running i2c fast mode.
+    // Minimum supported i2c clock speed is 100kHz, which sets minimum processor speed at
+    // 4MHz+ running in i2c standard mode. For up to 400kHz i2c clock speeds, minimum
+    // processor speed is 16MHz+ running in i2c fast mode.
     PCA9685(byte i2cAddress = B000000);
 ```
 
