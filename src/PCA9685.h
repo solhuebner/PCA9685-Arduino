@@ -161,11 +161,20 @@ public:
     // maximum of 62 modules that can be addressed on the same i2c line.
     // Boards with more than one i2c line (e.g. Due/Mega/etc.) can supply a different
     // Wire instance, such as Wire1 (using SDA1/SCL1), Wire2 (using SDA2/SCL2), etc.
+    // On Espressif, may supply i2c SDA pin and i2c SCL pin (for begin(...) call).
     // Supported i2c clock speeds are 100kHz, 400kHz (default), and 1000kHz.
-    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire, uint32_t i2cSpeed = 400000);
+    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire,
+#ifdef ESP_PLATFORM
+        byte i2cSDAPin = 21, byte i2cSCLPin = 22,
+#endif
+        uint32_t i2cSpeed = 400000);
 
     // Convenience constructor for custom Wire instance. See main constructor.
-    PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
+    PCA9685(TwoWire& i2cWire,
+#ifdef ESP_PLATFORM
+        byte i2cSDAPin = 21, byte i2cSCLPin = 22,
+#endif
+        uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
 
 #else
 
@@ -209,6 +218,10 @@ public:
 
     // Mode accessors
     byte getI2CAddress();
+#if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
+    byte getI2CSDAPin();
+    byte getI2CSCLPin();
+#endif
     uint32_t getI2CSpeed();
     PCA9685_OutputDriverMode getOutputDriverMode();
     PCA9685_OutputEnabledMode getOutputEnabledMode();
@@ -261,6 +274,10 @@ protected:
     byte _i2cAddress;                                       // Module's i2c address (default: B000000)
 #ifndef PCA9685_USE_SOFTWARE_I2C
     TwoWire* _i2cWire;                                      // Wire class instance (unowned) (default: Wire)
+#ifdef ESP_PLATFORM
+    byte _i2cSDAPin;                                        // ESP i2c SDA pin (default: 21)
+    byte _i2cSCLPin;                                        // ESP i2c SCL pin (default: 22)
+#endif
     uint32_t _i2cSpeed;                                     // Module's i2c clock speed (default: 400000)
 #endif
     PCA9685_OutputDriverMode _driverMode;                   // Output driver mode

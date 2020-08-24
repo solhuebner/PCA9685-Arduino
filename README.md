@@ -46,7 +46,7 @@ There are several initialization mode settings exposed through this library that
 
 #### Class Instantiation
 
-The library's class object must first be instantiated, commonly at the top of the sketch where pin setups are defined (or exposed through some other mechanism), which makes a call to the library's class constructor. The constructor allows one to set the module's i2c address, i2c Wire class instance, and i2c clock speed (the last two of which being ommitted when in software i2c mode). The default constructor values of the library, if left unspecified, is i2c address `B000000` and i2c Wire class instance `Wire` @`400k`Hz.
+The library's class object must first be instantiated, commonly at the top of the sketch where pin setups are defined (or exposed through some other mechanism), which makes a call to the library's class constructor. The constructor allows one to set the module's i2c address, i2c Wire class instance, if on Espressif then i2c SDA pin and i2c SCL pin, and lastly i2c clock speed (the i2c parameters being ommitted when in software i2c mode). The default constructor values of the library, if left unspecified, is i2c address `B000000`, i2c Wire class instance `Wire` @`400k`Hz, and if on Espressif then i2c SDA pin `D21` and i2c SCL pin `D22` (ESP32[-S] defaults).
 
 From PCA9685.h, in class PCA9685, when in hardware i2c mode:
 ```Arduino
@@ -56,11 +56,20 @@ From PCA9685.h, in class PCA9685, when in hardware i2c mode:
     // maximum of 62 modules that can be addressed on the same i2c line.
     // Boards with more than one i2c line (e.g. Due/Mega/etc.) can supply a different
     // Wire instance, such as Wire1 (using SDA1/SCL1), Wire2 (using SDA2/SCL2), etc.
+    // On Espressif, may supply i2c SDA pin and i2c SCL pin (for begin(...) call).
     // Supported i2c clock speeds are 100kHz, 400kHz (default), and 1000kHz.
-    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire, uint32_t i2cSpeed = 400000);
+    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire,
+#ifdef ESP_PLATFORM
+        byte i2cSDAPin = 21, byte i2cSCLPin = 22,
+#endif
+        uint32_t i2cSpeed = 400000);
 
     // Convenience constructor for custom Wire instance. See main constructor.
-    PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
+    PCA9685(TwoWire& i2cWire,
+#ifdef ESP_PLATFORM
+        byte i2cSDAPin = 21, byte i2cSCLPin = 22,
+#endif
+        uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
 ```
 
 From PCA9685.h, in class PCA9685, when in software i2c mode (see examples for sample usage):

@@ -50,11 +50,19 @@ bool PCA9685::_i2cBegan = false;
 
 #ifndef PCA9685_USE_SOFTWARE_I2C
 
-PCA9685::PCA9685(byte i2cAddress, TwoWire& i2cWire, uint32_t i2cSpeed)
+PCA9685::PCA9685(byte i2cAddress, TwoWire& i2cWire,
+#ifdef ESP_PLATFORM
+    byte i2cSDAPin, byte i2cSCLPin,
+#endif
+    uint32_t i2cSpeed)
     // I2C 7-bit address is B 1 A5 A4 A3 A2 A1 A0
     // RW lsb bit added by Arduino core TWI library
     : _i2cAddress(i2cAddress),
-      _i2cWire(&i2cWire), _i2cSpeed(i2cSpeed),
+      _i2cWire(&i2cWire),
+#ifdef ESP_PLATFORM
+      _i2cSDAPin(i2cSDAPin), _i2cSCLPin(i2cSCLPin),
+#endif
+      _i2cSpeed(i2cSpeed),
       _driverMode(PCA9685_OutputDriverMode_Undefined),
       _enabledMode(PCA9685_OutputEnabledMode_Undefined),
       _disabledMode(PCA9685_OutputDisabledMode_Undefined),
@@ -64,9 +72,17 @@ PCA9685::PCA9685(byte i2cAddress, TwoWire& i2cWire, uint32_t i2cSpeed)
       _lastI2CError(0)
 { }
 
-PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed, byte i2cAddress)
+PCA9685(TwoWire& i2cWire,
+#ifdef ESP_PLATFORM
+    byte i2cSDAPin, byte i2cSCLPin,
+#endif
+    uint32_t i2cSpeed, byte i2cAddress)
     : _i2cAddress(i2cAddress),
-      _i2cWire(&i2cWire), _i2cSpeed(i2cSpeed),
+      _i2cWire(&i2cWire),
+#ifdef ESP_PLATFORM
+      _i2cSDAPin(i2cSDAPin), _i2cSCLPin(i2cSCLPin),
+#endif
+      _i2cSpeed(i2cSpeed),
       _driverMode(PCA9685_OutputDriverMode_Undefined),
       _enabledMode(PCA9685_OutputEnabledMode_Undefined),
       _disabledMode(PCA9685_OutputDisabledMode_Undefined),
@@ -144,6 +160,12 @@ void PCA9685::init(PCA9685_OutputDriverMode driverMode,
     Serial.print(_i2cAddress, HEX);
     Serial.print(", i2cWire#: ");
     Serial.print(getWireInterfaceNumber());
+#if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
+    Serial.print(", i2cSDAPin: ");
+    Serial.print(getI2CSDAPin());
+    Serial.print(", i2cSCLPin: ");
+    Serial.print(getI2CSCLPin());
+#endif
     Serial.print(", i2cSpeed: ");
     Serial.print(roundf(getI2CSpeed() / 1000.0f)); Serial.print("kHz");
     Serial.println("");
@@ -178,6 +200,12 @@ void PCA9685::initAsProxyAddresser() {
     Serial.print(_i2cAddress, HEX);
     Serial.print(", i2cWire#: ");
     Serial.print(getWireInterfaceNumber());
+#if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
+    Serial.print(", i2cSDAPin: ");
+    Serial.print(getI2CSDAPin());
+    Serial.print(", i2cSCLPin: ");
+    Serial.print(getI2CSCLPin());
+#endif
     Serial.print(", i2cSpeed: ");
     Serial.print(roundf(getI2CSpeed() / 1000.0f)); Serial.print("kHz");
     Serial.println("");
@@ -193,6 +221,18 @@ void PCA9685::initAsProxyAddresser() {
 byte PCA9685::getI2CAddress() {
     return _i2cAddress;
 }
+
+#if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
+
+byte PCA9685::getI2CSDAPin() {
+    return _i2cSDAPin;
+}
+
+byte PCA9685::getI2CSCLPin() {
+    return _i2cSCLPin;
+}
+
+#endif // /if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
 
 uint32_t PCA9685::getI2CSpeed() {
 #ifndef PCA9685_USE_SOFTWARE_I2C
@@ -733,11 +773,15 @@ void PCA9685::i2cWire_begin() {
     PCA9685::_i2cBegan = true;
     _lastI2CError = 0;
 #ifndef PCA9685_USE_SOFTWARE_I2C
+#ifndef ESP_PLATFORM
     _i2cWire->begin();
     _i2cWire->setClock(getI2CSpeed());
 #else
+    _i2cWire->begin(getI2CSDAPin(), getI2CSCLPin(), getI2CSpeed());
+#endif // /ifndef ESP_PLATFORM
+#else
     if (!i2c_init()) _lastI2CError = 4;
-#endif
+#endif // /ifndef PCA9685_USE_SOFTWARE_I2C
 }
 
 void PCA9685::i2cWire_beginTransmission(uint8_t addr) {
@@ -837,6 +881,12 @@ void PCA9685::printModuleInfo() {
     Serial.print("0x"); Serial.println(_i2cAddress, HEX);
     Serial.println("i2c Instance:");
     Serial.println(textForWireInterfaceNumber(getWireInterfaceNumber()));
+#if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
+    Serial.println("i2c SDA Pin:");
+    Serial.print("D"); Serial.println(getI2CSDAPin());
+    Serial.println("i2c SCL Pin:");
+    Serial.print("D"); Serial.println(getI2CSCLPin());
+#endif
     Serial.println("i2c Speed:");
     Serial.print(roundf(getI2CSpeed() / 1000.0f)); Serial.println("kHz");
 
@@ -944,7 +994,9 @@ void PCA9685::checkForErrors() {
 
 #endif // /ifdef PCA9685_ENABLE_DEBUG_OUTPUT
 
-PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t maxPWMAmount) {
+PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t maxPWMAmount)
+    : _coeff(NULL), _isCSpline(false)
+{
     minPWMAmount = constrain(minPWMAmount, 0, PCA9685_PWM_FULL);
     maxPWMAmount = constrain(maxPWMAmount, minPWMAmount, PCA9685_PWM_FULL);
 
@@ -955,7 +1007,9 @@ PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t m
     _coeff[1] = (maxPWMAmount - minPWMAmount) / 180.0f;
 }
 
-PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t midPWMAmount, uint16_t maxPWMAmount) {
+PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t midPWMAmount, uint16_t maxPWMAmount)
+    : _coeff(NULL), _isCSpline(false)
+{
     minPWMAmount = constrain(minPWMAmount, 0, PCA9685_PWM_FULL);
     midPWMAmount = constrain(midPWMAmount, minPWMAmount, PCA9685_PWM_FULL);
     maxPWMAmount = constrain(maxPWMAmount, midPWMAmount, PCA9685_PWM_FULL);
@@ -1007,7 +1061,7 @@ PCA9685_ServoEvaluator::PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t m
 }
 
 PCA9685_ServoEvaluator::~PCA9685_ServoEvaluator() {
-    if (_coeff) delete[] _coeff;
+    if (_coeff) { delete[] _coeff; _coeff = NULL; }
 }
 
 uint16_t PCA9685_ServoEvaluator::pwmForAngle(float angle) {
