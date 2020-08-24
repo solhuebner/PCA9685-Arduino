@@ -154,6 +154,7 @@ enum PCA9685_PhaseBalancer {
 class PCA9685 {
 public:
 #ifndef PCA9685_USE_SOFTWARE_I2C
+
     // Library constructor. Typically called during class instantiation, before setup().
     // The i2c address should be the value of the A5-A0 pins, as the class handles the
     // module's base i2c address. It should be a value between 0 and 61, which gives a
@@ -165,7 +166,9 @@ public:
 
     // Convenience constructor for custom Wire instance. See main constructor.
     PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
+
 #else
+
     // Library constructor. Typically called during class instantiation, before setup().
     // The i2c address should be the value of the A5-A0 pins, as the class handles the
     // module's base i2c address. It should be a value between 0 and 61, which gives a
@@ -174,6 +177,7 @@ public:
     // 4MHz+ running in i2c standard mode. For up to 400kHz i2c clock speeds, minimum
     // processor speed is 16MHz+ running in i2c fast mode.
     PCA9685(byte i2cAddress = B000000);
+
 #endif
 
     // Resets modules, also begins Wire instance. Typically called in setup(), before any
