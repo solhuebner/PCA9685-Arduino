@@ -191,11 +191,11 @@ From PCA9685.h, in class PCA9685:
 ### Servo Control
 
 * Many digital servos run on a 20ms pulse width (50Hz update frequency) based duty cycle, and do not utilize the entire pulse width for their control.
-* Typically, 2.5% of the 20ms pulse width (0.5ms) is considered -90 degrees, and 12.5% of the 20ms pulse width (2.5ms) is considered +90 degrees.
-  * This roughly translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096 value range) for -90 to +90 degree control.
-  * This may need to be adjusted to fit your specific servo (e.g. some I've tested run ~130 to ~525 for their -90/+90 degree control).
-* Be aware that driving some servos past their -90/+90 degrees of movement can cause a little plastic limiter pin to break off and get stuck inside of the gearing, which could potentially cause the servo to become jammed and no longer function.
-* Similarly, continuous servos operate in much the same fashion, but instead of the pulse width controlling a -90/+90 degree offset it controls a -1.0x/+1.0x speed setting.
+* Typically, 2.5% of the 20ms pulse width (0.5ms) represents -90° offset, and 12.5% of the 20ms pulse width (2.5ms) represents +90° offset.
+  * This roughly translates to raw PCA9685 PWM values of 102 and 512 (out of the 4096/12-bit value range) for their -90°/+90° offset control.
+  * However, these may need to be adjusted to fit your specific servo (e.g. some we've tested run ~130 to ~525 for their -90°/+90° offset control).
+* Be aware that driving some 180° servos too far past their -90°/+90° operational range can cause a little plastic limiter pin to break off and get stuck inside of the servo's gearing, which could potentially cause the servo to become jammed and no longer function.
+* Continuous servos operate in much the same fashion as 180° servos, but instead of the 2.5%/12.5% pulse width controlling a -90°/+90° offset it controls a -1x/+1x speed multiplier, with 0x being parked/no-movement and -1x/+1x being maximum speed in either direction.
 
 See the PCA9685_ServoEvaluator class to assist with calculating PWM values from Servo angle/speed values, if you desire that level of fine tuning.
 
@@ -267,10 +267,13 @@ void loop() {
     pwmController.setChannelsPWM(0, 12, pwms);
     delay(5000);
 
-    // NOTE: Only 7 channels can be written in one i2c transaction due to a BUFFER_LENGTH
-    // size of 32, so 12 channels will take two i2c transactions. This may cause a slight
-    // offset flicker between the first 7 and remaining channels, but can be offset by
-    // experimenting with a channel update mode of PCA9685_ChannelUpdateMode_AfterAck.
+    // NOTE: Many chips use a BUFFER_LENGTH size of 32, and in that case writing 12
+    // channels will take 2 i2c transactions because only 7 channels can fit in a single
+    // i2c buffer transaction at a time. This may cause a slight offset flicker between
+    // the first 7 and remaining 5 channels, but can be offset by experimenting with a
+    // channel update mode of PCA9685_ChannelUpdateMode_AfterAck. This will make each
+    // channel update immediately upon sending of the Ack signal after each PWM command
+    // is executed rather than at the Stop signal at the end of the i2c transaction.
 }
 
 ```
@@ -336,8 +339,8 @@ PCA9685_ServoEvaluator pwmServo1;
 // Testing our second servo has found that -90° sits at 128, 0° at 324, and +90° at 526.
 // Since 324 isn't precisely in the middle, a cubic spline will be used to smoothly
 // interpolate PWM values, which will account for said discrepancy. Additionally, since
-// 324 is closer to 128 than 526, there is less resolution in the -90° to 0° range, and
-// more in the 0° to +90° range.
+// 324 is closer to 128 than 526, there is slightly less resolution in the -90° to 0°
+// range while slightly more in the 0° to +90° range.
 PCA9685_ServoEvaluator pwmServo2(128,324,526);
 
 void setup() {

@@ -42,18 +42,19 @@
 
 // Hookup Callouts
 // -PLEASE READ-
-// Many digital servos run on a 20ms pulse width (50Hz update frequency) based duty
-// cycle, and do not utilize the entire pulse width for their control. Typically, 2.5% of
-// the 20ms pulse width (0.5ms) is considered -90 degrees, and 12.5% of the 20ms pulse
-// width (2.5ms) is considered +90 degrees. This roughly translates to raw PCA9685 PWM
-// values of 102 and 512 (out of the 4096 value range) for -90 to +90 degree control.
-// This may need to be adjusted to fit your specific servo (e.g. some I've tested run
-// ~130 to ~525 for their -90/+90 degree control). Be aware that driving some servos past
-// their -90/+90 degrees of movement can cause a little plastic limiter pin to break off
-// and get stuck inside of the gearing, which could potentially cause the servo to become
-// jammed and no longer function. Similarly, continuous servos operate in much the same
-// fashion, but instead of the pulse width controlling a -90/+90 degree offset it
-// controls a -1.0x/+1.0x speed setting.
+// Many digital servos run on a 20ms pulse width (50Hz update frequency) based duty cycle,
+// and do not utilize the entire pulse width for their control. Typically, 2.5% of the
+// 20ms pulse width (0.5ms) represents -90° offset, and 12.5% of the 20ms pulse width
+// (2.5ms) represents +90° offset. This roughly translates to raw PCA9685 PWM values of
+// 102 and 512 (out of the 4096/12-bit value range) for their -90°/+90° offset control.
+// However, these may need to be adjusted to fit your specific servo (e.g. some we've
+// tested run ~130 to ~525 for their -90°/+90° offset control). Be aware that driving
+// some 180° servos too far past their -90°/+90° operational range can cause a little
+// plastic limiter pin to break off and get stuck inside of the servo's gearing, which
+// could potentially cause the servo to become jammed and no longer function. Continuous
+// servos operate in much the same fashion as 180° servos, but instead of the 2.5%/12.5%
+// pulse width controlling a -90°/+90° offset it controls a -1x/+1x speed multiplier,
+// with 0x being parked/no-movement and -1x/+1x being maximum speed in either direction.
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #include <Arduino.h>
@@ -229,7 +230,10 @@ public:
     PCA9685_ChannelUpdateMode getChannelUpdateMode();
     PCA9685_PhaseBalancer getPhaseBalancer();
 
-    // Min: 24Hz, Max: 1526Hz, Default: 200Hz (as Hz increases channel resolution widens, but raw pre-scaler value, as computed per datasheet, also becomes less affected inversly)
+    // Min: 24Hz, Max: 1526Hz, Default: 200Hz. As Hz increases channel resolution
+    // diminishes, as raw pre-scaler value, computed per datasheet, starts to require
+    // much larger frequency increases for single-digit increases of the raw pre-scaler
+    // value that ultimately controls the PWM frequency produced.
     void setPWMFrequency(float pwmFrequency);
 
     // Turns channel either full on or full off
@@ -318,7 +322,7 @@ public:
 
     // Uses a cubic spline to interpolate due to an offsetted zero point that isn't
     // exactly between -90/+90 (or -1x/+1x). This takes more time to compute, but gives a
-    // more accurate PWM output value along the entire range.
+    // smoother PWM output value along the entire range.
     PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t midPWMAmount, uint16_t maxPWMAmount);
 
     ~PCA9685_ServoEvaluator();
@@ -326,7 +330,7 @@ public:
     // Returns the PWM value to use given the angle offset (-90 to +90)
     uint16_t pwmForAngle(float angle);
 
-    // Returns the PWM value to use given the speed setting (-1 to +1)
+    // Returns the PWM value to use given the speed multiplier (-1 to +1)
     uint16_t pwmForSpeed(float speed);
 
 private:

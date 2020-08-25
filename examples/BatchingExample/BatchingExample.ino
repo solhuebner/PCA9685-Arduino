@@ -35,8 +35,11 @@ void loop() {
     pwmController.setChannelsPWM(0, 12, pwms);
     delay(5000);
 
-    // NOTE: Only 7 channels can be written in one i2c transaction due to a BUFFER_LENGTH
-    // size of 32, so 12 channels will take two i2c transactions. This may cause a slight
-    // offset flicker between the first 7 and remaining channels, but can be offset by
-    // experimenting with a channel update mode of PCA9685_ChannelUpdateMode_AfterAck.
+    // NOTE: Many chips use a BUFFER_LENGTH size of 32, and in that case writing 12
+    // channels will take 2 i2c transactions because only 7 channels can fit in a single
+    // i2c buffer transaction at a time. This may cause a slight offset flicker between
+    // the first 7 and remaining 5 channels, but can be offset by experimenting with a
+    // channel update mode of PCA9685_ChannelUpdateMode_AfterAck. This will make each
+    // channel update immediately upon sending of the Ack signal after each PWM command
+    // is executed rather than at the Stop signal at the end of the i2c transaction.
 }
