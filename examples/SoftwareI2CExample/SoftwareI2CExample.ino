@@ -5,13 +5,13 @@
 // Additionally, you will need to correctly define SCL_PIN, SCL_PORT, SDA_PIN, and
 // SDA_PORT according to your setup. I2C_FASTMODE=1 should be set for 16MHz+ processors.
 // You may refer to https://forum.arduino.cc/index.php?topic=602603.0 on how to define
-// custom build flags manually via modifying platform.[local.]txt.
+// custom build flags manually via modifying platform[.local].txt.
 //
-// In LeptonFLiR.h:
+// In PCA9685.h:
 // // Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor).
 // #define PCA9685_ENABLE_SOFTWARE_I2C             // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 //
-// Alternatively, in platform.[local.]txt:
+// Alternatively, in platform[.local].txt:
 // build.extra_flags=-DPCA9685_ENABLE_SOFTWARE_I2C
 
 #include "PCA9685.h"
@@ -34,11 +34,12 @@
 PCA9685 pwmController;                  // Library using default B000000 (A5-A0) i2c address
 
 void setup() {
-    Serial.begin(115200);				// Library will begin SoftI2C, so we just need to begin Serial
+    Serial.begin(115200);               // Begin Serial and SoftI2C interfaces
+    i2c_init();
 
-    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins SoftI2C
+    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
-    // Initializes module using linear phase balancer, and open-drain style driver mode
+    // Initializes module using software linear phase balancer, and open-drain style driver mode
     pwmController.init(PCA9685_PhaseBalancer_Linear,
                        PCA9685_OutputDriverMode_OpenDrain);
 

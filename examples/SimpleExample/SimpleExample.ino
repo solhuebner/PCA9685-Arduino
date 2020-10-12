@@ -5,11 +5,12 @@
 PCA9685 pwmController;                  // Library using default B000000 (A5-A0) i2c address, and default Wire @400kHz
 
 void setup() {
-    Serial.begin(115200);               // Library will begin Wire, so we just need to begin Serial
+    Serial.begin(115200);               // Begin Serial and Wire interfaces
+    Wire.begin();
 
-    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins Wire
+    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
-    pwmController.init();        		// Initializes module using default totem-pole driver mode, and default disabled phase balancer
+    pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
 
     pwmController.setPWMFrequency(100); // Set PWM freq to 100Hz (default is 200Hz, supports 24Hz to 1526Hz)
 

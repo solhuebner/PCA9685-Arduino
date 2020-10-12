@@ -11,9 +11,10 @@ PCA9685 pwmController2(B000001);        // Library using B000001 (A5-A0) i2c add
 PCA9685 pwmControllerAll(PCA9685_I2C_DEF_ALLCALL_PROXYADR);
 
 void setup() {
-    Serial.begin(115200);               // Library will begin Wire, so we just need to begin Serial
+    Serial.begin(115200);               // Begin Serial and Wire interfaces
+    Wire.begin();
 
-    pwmControllerAll.resetDevices();    // Resets all PCA9685 devices on i2c line, also begins Wire
+    pwmControllerAll.resetDevices();    // Resets all PCA9685 devices on i2c line
 
     pwmController1.init();              // Initializes first module using default totem-pole driver mode, and default disabled phase balancer
     pwmController2.init();              // Initializes second module using default totem-pole driver mode, and default disabled phase balancer

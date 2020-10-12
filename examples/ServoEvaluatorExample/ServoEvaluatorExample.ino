@@ -18,11 +18,12 @@ PCA9685_ServoEvaluator pwmServo1;
 PCA9685_ServoEvaluator pwmServo2(128,324,526);
 
 void setup() {
-    Serial.begin(115200);               // Library will begin Wire1, so we just need to begin Serial
+    Serial.begin(115200);               // Begin Serial and Wire1 interfaces
+    Wire1.begin();
 
-    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins Wire1
+    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
-    pwmController.init();        		// Initializes module using default totem-pole driver mode, and default disabled phase balancer
+    pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
 
     pwmController.setPWMFrequency(50);  // 50Hz provides standard 20ms servo phase length
 

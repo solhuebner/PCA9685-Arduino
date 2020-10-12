@@ -26,7 +26,7 @@ The easiest way to install this library is to utilize the Arduino IDE library ma
 
 There are several defines inside of the library's main header file that allow for more fine-tuned control of the library. You may edit and uncomment these lines directly, or supply them via custom build flags. While editing the main header file isn't ideal, it is often the easiest given the Arduino IDE's limited custom build flag support. Note that editing the library's main header file directly will affect all projects compiled on your system using those modified library files.
 
-Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=602603.0> on how to define custom build flags manually via modifying the platform.[local.]txt file. Note that editing such directly will affect all other projects compiled on your system using those modified platform framework files.
+Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=602603.0> on how to define custom build flags manually via modifying the platform[.local].txt file. Note that editing such directly will affect all other projects compiled on your system using those modified platform framework files.
 
 From PCA9685.h:
 ```Arduino
@@ -46,7 +46,7 @@ There are several initialization mode settings exposed through this library that
 
 #### Class Instantiation
 
-The library's class object must first be instantiated, commonly at the top of the sketch where pin setups are defined (or exposed through some other mechanism), which makes a call to the library's class constructor. The constructor allows one to set the module's i2c address, i2c Wire class instance, if on Espressif then i2c SDA pin and i2c SCL pin, and lastly i2c clock speed (most i2c parameters being ommitted when in software i2c mode). The default constructor values of the library, if left unspecified, is i2c address `B000000`, i2c Wire class instance `Wire` @`400k`Hz, and if on Espressif then i2c SDA pin `D21` and i2c SCL pin `D22` (ESP32[-S] defaults).
+The library's class object must first be instantiated, commonly at the top of the sketch where pin setups are defined (or exposed through some other mechanism), which makes a call to the library's class constructor. The constructor allows one to set the module's i2c address, i2c Wire class instance, and lastly i2c clock speed (most i2c parameters being ommitted when in software i2c mode). The default constructor values of the library, if left unspecified, is i2c address `B000000`, and i2c Wire class instance `Wire` @`400k`Hz.
 
 From PCA9685.h, in class PCA9685, when in hardware i2c mode:
 ```Arduino
@@ -56,20 +56,11 @@ From PCA9685.h, in class PCA9685, when in hardware i2c mode:
     // maximum of 62 modules that can be addressed on the same i2c line.
     // Boards with more than one i2c line (e.g. Due/Mega/etc.) can supply a different
     // Wire instance, such as Wire1 (using SDA1/SCL1), Wire2 (using SDA2/SCL2), etc.
-    // On Espressif, may supply i2c SDA pin and i2c SCL pin (for begin(...) call).
     // Supported i2c clock speeds are 100kHz, 400kHz (default), and 1000kHz.
-    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire,
-#ifdef ESP_PLATFORM
-        byte i2cSDAPin = 21, byte i2cSCLPin = 22,
-#endif
-        uint32_t i2cSpeed = 400000);
+    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire, uint32_t i2cSpeed = 400000);
 
     // Convenience constructor for custom Wire instance. See main constructor.
-    PCA9685(TwoWire& i2cWire,
-#ifdef ESP_PLATFORM
-        byte i2cSDAPin = 21, byte i2cSCLPin = 22,
-#endif
-        uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
+    PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
 ```
 
 From PCA9685.h, in class PCA9685, when in software i2c mode (see examples for sample usage):
@@ -86,13 +77,13 @@ From PCA9685.h, in class PCA9685, when in software i2c mode (see examples for sa
 
 #### Device Initialization
 
-Additionally, a call is expected to be provided to the library class object's `init(...)` or `initAsProxyAddresser()` methods, commonly called inside of the sketch's `setup()` function. The `init(...)` method allows one to set the module's driver mode, enabled/disabled output settings, channel update mode, and phase balancer scheme, while the `initAsProxyAddresser()` method allows one to setup the object as a proxy addresser (see examples for sample usage). These methods also begin the supplied Wire instance. The default init values of the library, if left unspecified, is `PCA9685_OutputDriverMode_TotemPole`, `PCA9685_OutputEnabledMode_Normal`, `PCA9685_OutputDisabledMode_Low`, `PCA9685_ChannelUpdateMode_AfterStop`, and `PCA9685_PhaseBalancer_None` which seems to work for most of the PCA9685 breakouts on market, but should be set according to your setup.
+Additionally, a call is expected to be provided to the library class object's `init(...)` or `initAsProxyAddresser()` methods, commonly called inside of the sketch's `setup()` function. The `init(...)` method allows one to set the module's driver mode, enabled/disabled output settings, channel update mode, and phase balancer scheme, while the `initAsProxyAddresser()` method allows one to setup the object as a proxy addresser (see examples for sample usage). The default init values of the library, if left unspecified, is `PCA9685_OutputDriverMode_TotemPole`, `PCA9685_OutputEnabledMode_Normal`, `PCA9685_OutputDisabledMode_Low`, `PCA9685_ChannelUpdateMode_AfterStop`, and `PCA9685_PhaseBalancer_None` which seems to work for most of the PCA9685 breakouts on market, but should be set according to your setup.
 
 See Section 7.3.2 of the datasheet for more details.
 
 From PCA9685.h, in class PCA9685, for standard init:
 ```Arduino
-    // Initializes module, also begins Wire instance. Typically called in setup().
+    // Initializes module. Typically called in setup().
     // See individual enums for more info.
     void init(PCA9685_OutputDriverMode driverMode = PCA9685_OutputDriverMode_TotemPole,
               PCA9685_OutputEnabledMode enabledMode = PCA9685_OutputEnabledMode_Normal,
@@ -110,11 +101,11 @@ From PCA9685.h, in class PCA9685, for standard init:
 
 From PCA9685.h, in class PCA9685, for init as a proxy addresser (see examples for sample usage):
 ```Arduino
-    // Initializes module as a proxy addresser, also begins Wire instance. Typically
-    // called in setup(). Used when instance talks through to AllCall/Sub1-Sub3 instances
-    // as a proxy object. Using this method will disable any method that performs a read
-    // or conflicts with certain states. Proxy addresser i2c addresses must be >= 0xE0,
-    // with defaults provided via PCA9685_I2C_DEF_[ALLCALL|SUB[1-3]]_PROXYADR defines.
+    // Initializes module as a proxy addresser. Typically called in setup(). Used when
+    // instance talks through to AllCall/Sub1-Sub3 instances as a proxy object. Using
+    // this method will disable any method that performs a read or conflicts with certain
+    // states. Proxy addresser i2c addresses must be >= 0xE0, with defaults provided via
+    // PCA9685_I2C_DEF_[ALLCALL|SUB[1-3]]_PROXYADR defines.
     void initAsProxyAddresser();
 ```
 
@@ -124,7 +115,7 @@ From PCA9685.h:
 // correct usage of OUTDRV).
 enum PCA9685_OutputDriverMode {
     PCA9685_OutputDriverMode_OpenDrain,         // Module outputs in an open-drain style structure, without an external driver
-    PCA9685_OutputDriverMode_TotemPole          // Module outputs in a totem-pole style structure, with an external driver (default)
+    PCA9685_OutputDriverMode_TotemPole,         // Module outputs in a totem-pole style structure, with an external driver (default)
 };
 // NOTE: Totem-pole mode requires an external driver to be used (most breakouts support
 // this, some don't). However, from datasheet Table 6. subnote [1]: "Some newer LEDs
@@ -135,18 +126,18 @@ enum PCA9685_OutputDriverMode {
 // Output-enabled/active-low-OE-pin=LOW driver output mode (see datasheet Table 12 and
 // Fig 13, 14, and 15 concerning correct usage of INVRT).
 enum PCA9685_OutputEnabledMode {
-    PCA9685_OutputEnabledMode_Normal,           // When OE is enabled/LOW, channel output uses normal output polarity (default)
-    PCA9685_OutputEnabledMode_Inverted          // When OE is enabled/LOW, channel output uses inverted output polarity (only available in totem-pole mode)
+    PCA9685_OutputEnabledMode_Normal,           // When OE is enabled/LOW, channel output uses normal/N-type output polarity (default)
+    PCA9685_OutputEnabledMode_Inverted,         // When OE is enabled/LOW, channel output uses inverted/P-type output polarity (only available in totem-pole mode)
 };
-// NOTE: Polarity inversion should be set according to if an external N-type driver
-// (should use INVRT) or P-type driver (should not use INVRT) is used.
+// NOTE: Polarity inversion is often set according to if an external N-type driver
+// (should not use INVRT) or P-type driver (should use INVRT) is used.
 
 // Output-not-enabled/active-low-OE-pin=HIGH driver output mode (see datasheet Section
 // 7.4 concerning correct usage of OUTNE).
 enum PCA9685_OutputDisabledMode {
     PCA9685_OutputDisabledMode_Low,             // When OE is disabled/HIGH, channels output a LOW signal (default)
     PCA9685_OutputDisabledMode_High,            // When OE is disabled/HIGH, channels output a HIGH signal (only available in totem-pole mode)
-    PCA9685_OutputDisabledMode_Floating         // When OE is disabled/HIGH, channel outputs go into a high-impedance/floating state (aka high-Z), which may be further refined via external pull-up/pull-down resistors
+    PCA9685_OutputDisabledMode_Floating,        // When OE is disabled/HIGH, channel outputs go into a high-impediance/floating state (aka high-Z), which may be further refined via external pull-up/pull-down resistors
 };
 // NOTE: Active-low-OE pin is typically used to synchronize multiple PCA9685 devices
 // together, but can also be used as an external dimming control signal.
@@ -154,15 +145,14 @@ enum PCA9685_OutputDisabledMode {
 // Channel update strategy used when multiple channels are being updated in batch.
 enum PCA9685_ChannelUpdateMode {
     PCA9685_ChannelUpdateMode_AfterStop,        // Channel updates commit after full-transmission STOP signal (default)
-    PCA9685_ChannelUpdateMode_AfterAck          // Channel updates commit after individual channel update ACK signal
+    PCA9685_ChannelUpdateMode_AfterAck,         // Channel updates commit after individual channel update ACK signal
 };
 
 // Software-based phase balancing scheme.
 enum PCA9685_PhaseBalancer {
     PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware to handle current sinkage (ensure 10v 1000μF capacitor is installed on breakout/circuit) (default)
-    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 256 steps away from previous channel (may cause flickering on PWM changes)
-    PCA9685_PhaseBalancer_Weaved,               // Uses weaved software-based phase balancing, with each channel being positioned in a preset weaved distribution that favors fewer/lower-indexed channels (may cause flickering on PWM changes)
-    PCA9685_PhaseBalancer_Dynamic               // Uses dynamic software-based phase balancing, with each modified channel entering an in-use pool that recalculates an automatic linear distribution based on total channels modified/in-use (may cause flickering on PWM changes)
+    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 256 steps away from previous channel (may cause LED flickering/skipped-cycle on PWM changes)
+    PCA9685_PhaseBalancer_Dynamic,              // Uses dynamic software-based phase balancing, with each modified channel entering an in-use pool that recalculates an automatic linear distribution based on total channels modified/in-use (may cause LED flickering/skipped-cycle on PWM changes)
 };
 // NOTE: Software-based phase balancing attempts to mitigate the situation whereby a
 // large current sink can occur at the start of the PWM phase range, especially when
@@ -171,7 +161,7 @@ enum PCA9685_PhaseBalancer {
 // range instead of all at once at the start of the phase range. Software-based phase
 // balancing is only necessary in situations where there isn't a hardware-based solution
 // present, such as when a proper capacitor is installed to handle such sinkage, as is
-// installed in most, but not all, breakouts.
+// installed in most breakouts.
 ```
 
 #### Device Reset
@@ -180,9 +170,9 @@ If you are constantly re-building and re-uploading during development, it may be
 
 From PCA9685.h, in class PCA9685:
 ```Arduino
-    // Resets modules, also begins Wire instance. Typically called in setup(), before any
-    // init()'s. Calling will perform a software reset on all PCA9685 devices on the Wire
-    // instance, ensuring that all PCA9685 devices on that line are properly reset.
+    // Resets modules. Typically called in setup(), before any init()'s. Calling will
+    // perform a software reset on all PCA9685 devices on the Wire instance, ensuring
+    // that all PCA9685 devices on that line are properly reset.
     void resetDevices();
 ```
 
@@ -211,9 +201,10 @@ Below are several examples of library usage.
 PCA9685 pwmController;                  // Library using default B000000 (A5-A0) i2c address, and default Wire @400kHz
 
 void setup() {
-    Serial.begin(115200);               // Library will begin Wire, so we just need to begin Serial
+    Serial.begin(115200);               // Begin Serial and Wire interfaces
+    Wire.begin();
 
-    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins Wire
+    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
     pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
 
@@ -239,9 +230,10 @@ In this example, we randomly select PWM frequencies on all 12 outputs and allow 
 PCA9685 pwmController(B010101);         // Library using B010101 (A5-A0) i2c address, and default Wire @400kHz
 
 void setup() {
-    Serial.begin(115200);               // Library will begin Wire, so we just need to begin Serial
+    Serial.begin(115200);               // Begin Serial and Wire interfaces
+    Wire.begin();
 
-    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins Wire
+    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
     pwmController.init();               // Initializes module using default totem-pole driver mode, and default phase balancer
 
@@ -292,9 +284,10 @@ PCA9685 pwmController2(B000001);        // Library using B000001 (A5-A0) i2c add
 PCA9685 pwmControllerAll(PCA9685_I2C_DEF_ALLCALL_PROXYADR);
 
 void setup() {
-    Serial.begin(115200);               // Library will begin Wire, so we just need to begin Serial
+    Serial.begin(115200);               // Begin Serial and Wire interfaces
+    Wire.begin();
 
-    pwmControllerAll.resetDevices();    // Resets all PCA9685 devices on i2c line, also begins Wire
+    pwmControllerAll.resetDevices();    // Resets all PCA9685 devices on i2c line
 
     pwmController1.init();              // Initializes first module using default totem-pole driver mode, and default disabled phase balancer
     pwmController2.init();              // Initializes second module using default totem-pole driver mode, and default disabled phase balancer
@@ -344,9 +337,10 @@ PCA9685_ServoEvaluator pwmServo1;
 PCA9685_ServoEvaluator pwmServo2(128,324,526);
 
 void setup() {
-    Serial.begin(115200);               // Library will begin Wire1, so we just need to begin Serial
+    Serial.begin(115200);               // Begin Serial and Wire1 interfaces
+    Wire1.begin();
 
-    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins Wire1
+    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
     pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
 
@@ -393,7 +387,7 @@ In PCA9685.h:
 // Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor).
 #define PCA9685_ENABLE_SOFTWARE_I2C             // http://playground.arduino.cc/Main/SoftwareI2CLibrary
 ```  
-Alternatively, in platform.[local.]txt:
+Alternatively, in platform[.local].txt:
 ```Arduino
 build.extra_flags=-DPCA9685_ENABLE_SOFTWARE_I2C
 ```
@@ -420,11 +414,12 @@ In main sketch:
 PCA9685 pwmController;                  // Library using default B000000 (A5-A0) i2c address
 
 void setup() {
-    Serial.begin(115200);               // Library will begin SoftI2C, so we just need to begin Serial
+    Serial.begin(115200);               // Begin Serial and SoftI2C interfaces
+    i2c_init();
 
-    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line, also begins SoftI2C
+    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
-    // Initializes module using linear phase balancer, and open-drain style driver mode
+    // Initializes module using software linear phase balancer, and open-drain style driver mode
     pwmController.init(PCA9685_PhaseBalancer_Linear,
                        PCA9685_OutputDriverMode_OpenDrain);
 
@@ -447,7 +442,7 @@ In PCA9685.h:
 // Uncomment or -D this define to enable debug output.
 #define PCA9685_ENABLE_DEBUG_OUTPUT
 ```  
-Alternatively, in platform.[local.]txt:
+Alternatively, in platform[.local].txt:
 ```Arduino
 build.extra_flags=-DPCA9685_ENABLE_DEBUG_OUTPUT
 ```
@@ -459,9 +454,10 @@ In main sketch:
 PCA9685 pwmController;                  // Library using default B000000 (A5-A0) i2c address, and default Wire @400kHz
 
 void setup() {
-    Serial.begin(115200);               // Library will begin Wire, so we just need to begin Serial
+    Serial.begin(115200);               // Begin Serial and Wire interfaces
+    Wire.begin();
 
-    pwmController.init();               // Initializes module using default totem-pole driver mode, default disabled phase balancer, also begins Wire
+    pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
 
     pwmController.printModuleInfo();    // Prints module diagnostic information
 }
@@ -473,6 +469,49 @@ void loop() {
 
 In serial monitor:
 ```
-// TODO: Reinclude this example output after modifications completed. -NR
+ ~~~ PCA9685 Module Info ~~~
+
+i2c Address:
+0x40
+i2c Instance:
+Wire
+i2c Speed:
+400kHz
+
+Phase Balancer:
+0: PCA9685_PhaseBalancer_None
+
+Proxy Addresser:
+false
+
+Mode1 Register:
+  PCA9685::readRegister regAddress: 0x0
+    PCA9685::readRegister retVal: 0x20
+0x20, Bitset: PCA9685_MODE1_AUTOINC
+
+Mode2 Register:
+  PCA9685::readRegister regAddress: 0x1
+    PCA9685::readRegister retVal: 0x4
+0x4, Bitset: PCA9685_MODE2_OUTDRV_TPOLE
+
+SubAddress1 Register:
+  PCA9685::readRegister regAddress: 0x2
+    PCA9685::readRegister retVal: 0xE2
+0xE2
+
+SubAddress2 Register:
+  PCA9685::readRegister regAddress: 0x3
+    PCA9685::readRegister retVal: 0xE4
+0xE4
+
+SubAddress3 Register:
+  PCA9685::readRegister regAddress: 0x4
+    PCA9685::readRegister retVal: 0xE8
+0xE8
+
+AllCall Register:
+  PCA9685::readRegister regAddress: 0x5
+    PCA9685::readRegister retVal: 0xE0
+0xE0
 
 ```

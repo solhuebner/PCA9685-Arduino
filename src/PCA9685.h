@@ -1,5 +1,5 @@
 /*  Arduino Library for the PCA9685 16-Channel PWM Driver Module.
-    Copyright (c) 2016-2020 NachtRaveVL     <nachtravevl@gmail.com>
+    Copyright (C) 2016-2020 NachtRaveVL     <nachtravevl@gmail.com>
     Copyright (C) 2012 Kasper Skårhøj       <kasperskaarhoj@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
@@ -101,14 +101,14 @@ enum PCA9685_OutputDriverMode {
 // Output-enabled/active-low-OE-pin=LOW driver output mode (see datasheet Table 12 and
 // Fig 13, 14, and 15 concerning correct usage of INVRT).
 enum PCA9685_OutputEnabledMode {
-    PCA9685_OutputEnabledMode_Normal,           // When OE is enabled/LOW, channel output uses normal output polarity (default)
-    PCA9685_OutputEnabledMode_Inverted,         // When OE is enabled/LOW, channel output uses inverted output polarity (only available in totem-pole mode)
+    PCA9685_OutputEnabledMode_Normal,           // When OE is enabled/LOW, channel output uses normal/N-type output polarity (default)
+    PCA9685_OutputEnabledMode_Inverted,         // When OE is enabled/LOW, channel output uses inverted/P-type output polarity (only available in totem-pole mode)
 
     PCA9685_OutputEnabledMode_Count,            // Internal use only
     PCA9685_OutputEnabledMode_Undefined = -1    // Internal use only
 };
-// NOTE: Polarity inversion should be set according to if an external N-type driver
-// (should use INVRT) or P-type driver (should not use INVRT) is used.
+// NOTE: Polarity inversion is often set according to if an external N-type driver
+// (should not use INVRT) or P-type driver (should use INVRT) is used.
 
 // Output-not-enabled/active-low-OE-pin=HIGH driver output mode (see datasheet Section
 // 7.4 concerning correct usage of OUTNE).
@@ -135,9 +135,8 @@ enum PCA9685_ChannelUpdateMode {
 // Software-based phase balancing scheme.
 enum PCA9685_PhaseBalancer {
     PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware to handle current sinkage (ensure 10v 1000μF capacitor is installed on breakout/circuit) (default)
-    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 256 steps away from previous channel (may cause flickering on PWM changes)
-    PCA9685_PhaseBalancer_Weaved,               // Uses weaved software-based phase balancing, with each channel being positioned in a preset weaved distribution that favors fewer/lower-indexed channels (may cause flickering on PWM changes)
-    PCA9685_PhaseBalancer_Dynamic,              // Uses dynamic software-based phase balancing, with each modified channel entering an in-use pool that recalculates an automatic linear distribution based on total channels modified/in-use (may cause flickering on PWM changes)
+    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 256 steps away from previous channel (may cause LED flickering/skipped-cycle on PWM changes)
+    PCA9685_PhaseBalancer_Dynamic,              // Uses dynamic software-based phase balancing, with each modified channel entering an in-use pool that recalculates an automatic linear distribution based on total channels modified/in-use (may cause LED flickering/skipped-cycle on PWM changes)
 
     PCA9685_PhaseBalancer_Count,                // Internal use only
     PCA9685_PhaseBalancer_Undefined = -1        // Internal use only
@@ -149,7 +148,7 @@ enum PCA9685_PhaseBalancer {
 // range instead of all at once at the start of the phase range. Software-based phase
 // balancing is only necessary in situations where there isn't a hardware-based solution
 // present, such as when a proper capacitor is installed to handle current sinkage, as
-// is installed in most, but not all, breakouts.
+// is installed in most breakouts.
 
 
 class PCA9685 {
@@ -162,20 +161,11 @@ public:
     // maximum of 62 modules that can be addressed on the same i2c line.
     // Boards with more than one i2c line (e.g. Due/Mega/etc.) can supply a different
     // Wire instance, such as Wire1 (using SDA1/SCL1), Wire2 (using SDA2/SCL2), etc.
-    // On Espressif, may supply i2c SDA pin and i2c SCL pin (for begin(...) call).
     // Supported i2c clock speeds are 100kHz, 400kHz (default), and 1000kHz.
-    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire,
-#ifdef ESP_PLATFORM
-        byte i2cSDAPin = 21, byte i2cSCLPin = 22,
-#endif
-        uint32_t i2cSpeed = 400000);
+    PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire, uint32_t i2cSpeed = 400000);
 
     // Convenience constructor for custom Wire instance. See main constructor.
-    PCA9685(TwoWire& i2cWire,
-#ifdef ESP_PLATFORM
-        byte i2cSDAPin = 21, byte i2cSCLPin = 22,
-#endif
-        uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
+    PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed = 400000, byte i2cAddress = B000000);
 
 #else
 
@@ -190,12 +180,12 @@ public:
 
 #endif
 
-    // Resets modules, also begins Wire instance. Typically called in setup(), before any
-    // init()'s. Calling will perform a software reset on all PCA9685 devices on the Wire
-    // instance, ensuring that all PCA9685 devices on that line are properly reset.
+    // Resets modules. Typically called in setup(), before any init()'s. Calling will
+    // perform a software reset on all PCA9685 devices on the Wire instance, ensuring
+    // that all PCA9685 devices on that line are properly reset.
     void resetDevices();
 
-    // Initializes module, also begins Wire instance. Typically called in setup().
+    // Initializes module. Typically called in setup().
     // See individual enums for more info.
     void init(PCA9685_OutputDriverMode driverMode = PCA9685_OutputDriverMode_TotemPole,
               PCA9685_OutputEnabledMode enabledMode = PCA9685_OutputEnabledMode_Normal,
@@ -210,19 +200,15 @@ public:
               PCA9685_OutputDisabledMode disabledMode = PCA9685_OutputDisabledMode_Low,
               PCA9685_ChannelUpdateMode updateMode = PCA9685_ChannelUpdateMode_AfterStop);
 
-    // Initializes module as a proxy addresser, also begins Wire instance. Typically
-    // called in setup(). Used when instance talks through to AllCall/Sub1-Sub3 instances
-    // as a proxy object. Using this method will disable any method that performs a read
-    // or conflicts with certain states. Proxy addresser i2c addresses must be >= 0xE0,
-    // with defaults provided via PCA9685_I2C_DEF_[ALLCALL|SUB[1-3]]_PROXYADR defines.
+    // Initializes module as a proxy addresser. Typically called in setup(). Used when
+    // instance talks through to AllCall/Sub1-Sub3 instances as a proxy object. Using
+    // this method will disable any method that performs a read or conflicts with certain
+    // states. Proxy addresser i2c addresses must be >= 0xE0, with defaults provided via
+    // PCA9685_I2C_DEF_[ALLCALL|SUB[1-3]]_PROXYADR defines.
     void initAsProxyAddresser();
 
     // Mode accessors
     byte getI2CAddress();
-#if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
-    byte getI2CSDAPin();
-    byte getI2CSCLPin();
-#endif
     uint32_t getI2CSpeed();
     PCA9685_OutputDriverMode getOutputDriverMode();
     PCA9685_OutputEnabledMode getOutputEnabledMode();
@@ -274,14 +260,9 @@ public:
 #endif
 
 protected:
-    static bool _i2cBegan;                                  // Global i2c began flag
     byte _i2cAddress;                                       // Module's i2c address (default: B000000)
 #ifndef PCA9685_USE_SOFTWARE_I2C
     TwoWire* _i2cWire;                                      // Wire class instance (unowned) (default: Wire)
-#ifdef ESP_PLATFORM
-    byte _i2cSDAPin;                                        // ESP i2c SDA pin (default: 21)
-    byte _i2cSCLPin;                                        // ESP i2c SCL pin (default: 22)
-#endif
     uint32_t _i2cSpeed;                                     // Module's i2c clock speed (default: 400000)
 #endif
     PCA9685_OutputDriverMode _driverMode;                   // Output driver mode

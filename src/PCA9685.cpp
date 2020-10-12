@@ -1,6 +1,6 @@
 /*  Arduino Library for the PCA9685 16-Channel PWM Driver Module.
-    Copyright (C) 2016 NachtRaveVL      <nachtravevl@gmail.com>
-    Copyright (C) 2012 Kasper Skårhøj   <kasperskaarhoj@gmail.com>
+    Copyright (C) 2016-2020 NachtRaveVL     <nachtravevl@gmail.com>
+    Copyright (C) 2012 Kasper Skårhøj       <kasperskaarhoj@gmail.com>
     PCA9685 Main
 */
 
@@ -42,26 +42,25 @@
 #define PCA9685_SW_RESET                (byte)0x06          // Sent to address 0x00 to reset all devices on Wire line
 #define PCA9685_PWM_FULL                (uint16_t)0x01000   // Special value for full on/full off LEDx modes
 
-#define PCA9685_MIN_CHANNEL             0
-#define PCA9685_MAX_CHANNEL             15
 #define PCA9685_CHANNEL_COUNT           16
+#define PCA9685_MIN_CHANNEL             0
+#define PCA9685_MAX_CHANNEL             (PCA9685_CHANNEL_COUNT - 1)
 
-bool PCA9685::_i2cBegan = false;
+#ifdef PCA9685_USE_SOFTWARE_I2C
+boolean __attribute__((noinline)) i2c_init(void);
+bool __attribute__((noinline)) i2c_start(uint8_t addr);
+void __attribute__((noinline)) i2c_stop(void) asm("ass_i2c_stop");
+bool __attribute__((noinline)) i2c_write(uint8_t value) asm("ass_i2c_write");
+uint8_t __attribute__((noinline)) i2c_read(bool last);
+#endif
 
 #ifndef PCA9685_USE_SOFTWARE_I2C
 
-PCA9685::PCA9685(byte i2cAddress, TwoWire& i2cWire,
-#ifdef ESP_PLATFORM
-    byte i2cSDAPin, byte i2cSCLPin,
-#endif
-    uint32_t i2cSpeed)
+PCA9685::PCA9685(byte i2cAddress, TwoWire& i2cWire, uint32_t i2cSpeed)
     // I2C 7-bit address is B 1 A5 A4 A3 A2 A1 A0
     // RW lsb bit added by Arduino core TWI library
     : _i2cAddress(i2cAddress),
       _i2cWire(&i2cWire),
-#ifdef ESP_PLATFORM
-      _i2cSDAPin(i2cSDAPin), _i2cSCLPin(i2cSCLPin),
-#endif
       _i2cSpeed(i2cSpeed),
       _driverMode(PCA9685_OutputDriverMode_Undefined),
       _enabledMode(PCA9685_OutputEnabledMode_Undefined),
@@ -72,16 +71,9 @@ PCA9685::PCA9685(byte i2cAddress, TwoWire& i2cWire,
       _lastI2CError(0)
 { }
 
-PCA9685(TwoWire& i2cWire,
-#ifdef ESP_PLATFORM
-    byte i2cSDAPin, byte i2cSCLPin,
-#endif
-    uint32_t i2cSpeed, byte i2cAddress)
+PCA9685::PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed, byte i2cAddress)
     : _i2cAddress(i2cAddress),
       _i2cWire(&i2cWire),
-#ifdef ESP_PLATFORM
-      _i2cSDAPin(i2cSDAPin), _i2cSCLPin(i2cSCLPin),
-#endif
       _i2cSpeed(i2cSpeed),
       _driverMode(PCA9685_OutputDriverMode_Undefined),
       _enabledMode(PCA9685_OutputEnabledMode_Undefined),
@@ -152,7 +144,6 @@ void PCA9685::init(PCA9685_OutputDriverMode driverMode,
     Serial.print(", phaseBalancer: ");
     switch(_phaseBalancer) {
         case PCA9685_PhaseBalancer_Linear: Serial.print("Linear"); break;
-        case PCA9685_PhaseBalancer_Weaved: Serial.print("Weaved"); break;
         case PCA9685_PhaseBalancer_Dynamic: Serial.print("Dynamic"); break;
         default: Serial.print("<disabled>"); break;
     }
@@ -160,12 +151,6 @@ void PCA9685::init(PCA9685_OutputDriverMode driverMode,
     Serial.print(_i2cAddress, HEX);
     Serial.print(", i2cWire#: ");
     Serial.print(getWireInterfaceNumber());
-#if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
-    Serial.print(", i2cSDAPin: ");
-    Serial.print(getI2CSDAPin());
-    Serial.print(", i2cSCLPin: ");
-    Serial.print(getI2CSCLPin());
-#endif
     Serial.print(", i2cSpeed: ");
     Serial.print(roundf(getI2CSpeed() / 1000.0f)); Serial.print("kHz");
     Serial.println("");
@@ -190,7 +175,7 @@ void PCA9685::init(PCA9685_PhaseBalancer phaseBalancer,
 }
 
 void PCA9685::initAsProxyAddresser() {
-    if (driverMode != PCA9685_OutputDriverMode_Undefined) return;
+    if (_driverMode != PCA9685_OutputDriverMode_Undefined) return;
 
     _i2cAddress = PCA9685_I2C_BASE_PROXY_ADDRESS | (_i2cAddress & PCA9685_I2C_BASE_PROXY_ADRMASK);
     _isProxyAddresser = true;
@@ -200,12 +185,6 @@ void PCA9685::initAsProxyAddresser() {
     Serial.print(_i2cAddress, HEX);
     Serial.print(", i2cWire#: ");
     Serial.print(getWireInterfaceNumber());
-#if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
-    Serial.print(", i2cSDAPin: ");
-    Serial.print(getI2CSDAPin());
-    Serial.print(", i2cSCLPin: ");
-    Serial.print(getI2CSCLPin());
-#endif
     Serial.print(", i2cSpeed: ");
     Serial.print(roundf(getI2CSpeed() / 1000.0f)); Serial.print("kHz");
     Serial.println("");
@@ -221,18 +200,6 @@ void PCA9685::initAsProxyAddresser() {
 byte PCA9685::getI2CAddress() {
     return _i2cAddress;
 }
-
-#if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
-
-byte PCA9685::getI2CSDAPin() {
-    return _i2cSDAPin;
-}
-
-byte PCA9685::getI2CSCLPin() {
-    return _i2cSCLPin;
-}
-
-#endif // /if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
 
 uint32_t PCA9685::getI2CSpeed() {
 #ifndef PCA9685_USE_SOFTWARE_I2C
@@ -374,7 +341,11 @@ void PCA9685::setChannelsPWM(int begChannel, int numChannels, const uint16_t *pw
     while (numChannels > 0) {
         writeChannelBegin(begChannel);
 
+#ifndef PCA9685_USE_SOFTWARE_I2C
         int maxChannels = min(numChannels, (PCA9685_I2C_BUFFER_LENGTH - 1) / 4);
+#else
+        int maxChannels = numChannels;
+#endif
         while (maxChannels-- > 0) {
             uint16_t phaseBegin, phaseEnd;
             getPhaseCycle(begChannel++, *pwmAmounts++, &phaseBegin, &phaseEnd);
@@ -424,7 +395,7 @@ uint16_t PCA9685::getChannelPWM(int channel) {
         return 0;
     }
 
-    int bytesRead = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)4);
+    int bytesRead = i2cWire_requestFrom((uint8_t)_i2cAddress, 4);
     if (bytesRead != 4) {
         while (bytesRead-- > 0)
             i2cWire_read();
@@ -626,9 +597,9 @@ void PCA9685::getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegi
         // Distribute high phase area over entire phase range to balance load.
         *phaseBegin = channel * (4096 / 16);
     }
-    else if (_phaseBalancer == PCA9685_PhaseBalancer_Weaved) {
-        // Distribute high phase area over entire phase range to balance load.
-        *phaseBegin = phaseDistTable[channel];
+    else if (_phaseBalancer == PCA9685_PhaseBalancer_Dynamic) {
+        // TODO: Calculate phase cycle for Dynamic mode. -NR
+        *phaseBegin = 0;
     }
     else {
         *phaseBegin = 0;
@@ -732,7 +703,7 @@ byte PCA9685::readRegister(byte regAddress) {
         return 0;
     }
 
-    int bytesRead = i2cWire_requestFrom((uint8_t)_i2cAddress, (uint8_t)1);
+    int bytesRead = i2cWire_requestFrom((uint8_t)_i2cAddress, 1);
     if (bytesRead != 1) {
         while (bytesRead-- > 0)
             i2cWire_read();
@@ -760,28 +731,11 @@ byte PCA9685::readRegister(byte regAddress) {
     return retVal;
 }
 
-#ifdef PCA9685_USE_SOFTWARE_I2C
-boolean __attribute__((noinline)) i2c_init(void);
-bool __attribute__((noinline)) i2c_start(uint8_t addr);
-void __attribute__((noinline)) i2c_stop(void) asm("ass_i2c_stop");
-bool __attribute__((noinline)) i2c_write(uint8_t value) asm("ass_i2c_write");
-uint8_t __attribute__((noinline)) i2c_read(bool last);
-#endif
-
 void PCA9685::i2cWire_begin() {
-    if (PCA9685::_i2cBegan) return;
-    PCA9685::_i2cBegan = true;
     _lastI2CError = 0;
 #ifndef PCA9685_USE_SOFTWARE_I2C
-#ifndef ESP_PLATFORM
-    _i2cWire->begin();
     _i2cWire->setClock(getI2CSpeed());
-#else
-    _i2cWire->begin(getI2CSDAPin(), getI2CSCLPin(), getI2CSpeed());
-#endif // /ifndef ESP_PLATFORM
-#else
-    if (!i2c_init()) _lastI2CError = 4;
-#endif // /ifndef PCA9685_USE_SOFTWARE_I2C
+#endif
 }
 
 void PCA9685::i2cWire_beginTransmission(uint8_t addr) {
@@ -804,7 +758,7 @@ uint8_t PCA9685::i2cWire_endTransmission(void) {
 
 uint8_t PCA9685::i2cWire_requestFrom(uint8_t addr, uint8_t len) {
 #ifndef PCA9685_USE_SOFTWARE_I2C
-    return _i2cWire->requestFrom(addr, len);
+    return _i2cWire->requestFrom(addr, (size_t)len);
 #else
     i2c_start(addr | 0x01);
     return (_readBytes = len);
@@ -881,12 +835,6 @@ void PCA9685::printModuleInfo() {
     Serial.print("0x"); Serial.println(_i2cAddress, HEX);
     Serial.println("i2c Instance:");
     Serial.println(textForWireInterfaceNumber(getWireInterfaceNumber()));
-#if defined(ESP_PLATFORM) && !defined(PCA9685_USE_SOFTWARE_I2C)
-    Serial.println("i2c SDA Pin:");
-    Serial.print("D"); Serial.println(getI2CSDAPin());
-    Serial.println("i2c SCL Pin:");
-    Serial.print("D"); Serial.println(getI2CSCLPin());
-#endif
     Serial.println("i2c Speed:");
     Serial.print(roundf(getI2CSpeed() / 1000.0f)); Serial.println("kHz");
 
@@ -897,8 +845,6 @@ void PCA9685::printModuleInfo() {
             Serial.println("PCA9685_PhaseBalancer_None"); break;
         case PCA9685_PhaseBalancer_Linear:
             Serial.println("PCA9685_PhaseBalancer_Linear"); break;
-        case PCA9685_PhaseBalancer_Weaved:
-            Serial.println("PCA9685_PhaseBalancer_Weaved"); break;
         case PCA9685_PhaseBalancer_Dynamic:
             Serial.println("PCA9685_PhaseBalancer_Dynamic"); break;
         default:
