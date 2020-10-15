@@ -8,14 +8,14 @@
 PCA9685 pwmController(Wire1);           // Library using Wire1 @400kHz, and default B000000 (A5-A0) i2c address
 
 // Linearly interpolates between standard 2.5%/12.5% phase length (102/512) for -90°/+90°
-PCA9685_ServoEvaluator pwmServo1;
+PCA9685_ServoEval pwmServo1;
 
 // Testing our second servo has found that -90° sits at 128, 0° at 324, and +90° at 526.
 // Since 324 isn't precisely in the middle, a cubic spline will be used to smoothly
 // interpolate PWM values, which will account for said discrepancy. Additionally, since
 // 324 is closer to 128 than 526, there is slightly less resolution in the -90° to 0°
 // range while slightly more in the 0° to +90° range.
-PCA9685_ServoEvaluator pwmServo2(128,324,526);
+PCA9685_ServoEval pwmServo2(128,324,526);
 
 void setup() {
     Serial.begin(115200);               // Begin Serial and Wire1 interfaces
@@ -25,7 +25,7 @@ void setup() {
 
     pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
 
-    pwmController.setPWMFrequency(50);  // 50Hz provides standard 20ms servo phase length
+    pwmController.setPWMFreqServo();    // 50Hz provides standard 20ms servo phase length
 
     pwmController.setChannelPWM(0, pwmServo1.pwmForAngle(-90));
     Serial.println(pwmController.getChannelPWM(0)); // Should output 102 for -90°

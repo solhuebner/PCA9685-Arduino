@@ -73,8 +73,10 @@
 #define PCA9685_I2C_BUFFER_LENGTH   32
 #endif // /if BUFFER_LENGTH
 #else
+#include <avr/io.h>
 #define PCA9685_USE_SOFTWARE_I2C
 #endif // /ifndef PCA9685_ENABLE_SOFTWARE_I2C
+
 
 // Default proxy addresser i2c addresses
 #define PCA9685_I2C_DEF_ALLCALL_PROXYADR    (byte)0xE0      // Default AllCall i2c proxy address
@@ -86,36 +88,45 @@
 // Output driver control mode (see datasheet Table 12 and Fig 13, 14, and 15 concerning correct
 // usage of OUTDRV).
 enum PCA9685_OutputDriverMode {
-    PCA9685_OutputDriverMode_OpenDrain,         // Module outputs in an open-drain style structure, without an external driver
-    PCA9685_OutputDriverMode_TotemPole,         // Module outputs in a totem-pole style structure, with an external driver (default)
+    PCA9685_OutputDriverMode_OpenDrain,         // Module outputs in an open-drain (aka direct connection) style structure with 400mA @5v total sink current, useful for LEDs and low-power Servos
+    PCA9685_OutputDriverMode_TotemPole,         // Module outputs in a totem-pole (aka push-pull) style structure with 400mA @5v total sink current and 160mA total source current, useful for external drivers (default)
 
     PCA9685_OutputDriverMode_Count,             // Internal use only
     PCA9685_OutputDriverMode_Undefined = -1     // Internal use only
 };
-// NOTE: Totem-pole mode requires an external driver to be used (most breakouts support
-// this, some don't). However, from datasheet Table 6. subnote [1]: "Some newer LEDs
-// include integrated Zener diodes to limit voltage transients, reduce EMI, and protect
-// the LEDs, and these -MUST BE- driven only in the open-drain mode to prevent over-
-// heating the IC."
+// NOTE: Totem-pole mode should be used when an external N-type or P-type driver is in
+// use, which provides actual sourcing current while open-drain mode doesn't. At max
+// channel capacity, the sink current limit is 25mA@5v per channel while the source
+// current limit, in totem-pole mode, is 10mA@5v per channel. However, from datasheet
+// Table 6. subnote [1]: "Some newer LEDs include integrated Zener diodes to limit
+// voltage transients, reduce EMI, and protect the LEDs, and these -MUST- be driven only
+// in the open-drain mode to prevent over-heating the IC." Also from datasheet, Section
+// 10. question 5: "in the push-pull architecture there is a low resistance path to GND
+// through the Zener and this [causes] the IC to overheat."
 
 // Output-enabled/active-low-OE-pin=LOW driver output mode (see datasheet Table 12 and
 // Fig 13, 14, and 15 concerning correct usage of INVRT).
 enum PCA9685_OutputEnabledMode {
-    PCA9685_OutputEnabledMode_Normal,           // When OE is enabled/LOW, channel output uses normal/N-type output polarity (default)
-    PCA9685_OutputEnabledMode_Inverted,         // When OE is enabled/LOW, channel output uses inverted/P-type output polarity (only available in totem-pole mode)
+    PCA9685_OutputEnabledMode_Normal,           // When OE is enabled/LOW, channels output a normal signal, useful for N-type external drivers (default)
+    PCA9685_OutputEnabledMode_Inverted,         // When OE is enabled/LOW, channels output an inverted signal, useful for P-type external drivers or direct connection
 
     PCA9685_OutputEnabledMode_Count,            // Internal use only
     PCA9685_OutputEnabledMode_Undefined = -1    // Internal use only
 };
 // NOTE: Polarity inversion is often set according to if an external N-type driver
-// (should not use INVRT) or P-type driver (should use INVRT) is used.
+// (should not use INVRT) or external P-type driver/direct connection (should use INVRT)
+// is used. Most breakouts have just a 220Ω resistor between the individual channel
+// outputs of the IC and PWM output pins, which is useful when powering LEDs. The V+ rail
+// of most breakouts can connect through a 10v 1000μF decoupling capacitor, typically
+// already installed on most breakouts, which can reduce voltage spikes and ground bounce
+// when many channel devices are connected together.
 
 // Output-not-enabled/active-low-OE-pin=HIGH driver output mode (see datasheet Section
 // 7.4 concerning correct usage of OUTNE).
 enum PCA9685_OutputDisabledMode {
     PCA9685_OutputDisabledMode_Low,             // When OE is disabled/HIGH, channels output a LOW signal (default)
     PCA9685_OutputDisabledMode_High,            // When OE is disabled/HIGH, channels output a HIGH signal (only available in totem-pole mode)
-    PCA9685_OutputDisabledMode_Floating,        // When OE is disabled/HIGH, channel outputs go into a high-impediance/floating state (aka high-Z), which may be further refined via external pull-up/pull-down resistors
+    PCA9685_OutputDisabledMode_Floating,        // When OE is disabled/HIGH, channel outputs go into a floating (aka high-impedance/high-Z) state, which may be further refined via external pull-up/pull-down resistors
 
     PCA9685_OutputDisabledMode_Count,           // Internal use only
     PCA9685_OutputDisabledMode_Undefined = -1   // Internal use only
@@ -134,21 +145,21 @@ enum PCA9685_ChannelUpdateMode {
 
 // Software-based phase balancing scheme.
 enum PCA9685_PhaseBalancer {
-    PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware to handle current sinkage (ensure 10v 1000μF capacitor is installed on breakout/circuit) (default)
-    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 256 steps away from previous channel (may cause LED flickering/skipped-cycle on PWM changes)
-    PCA9685_PhaseBalancer_Dynamic,              // Uses dynamic software-based phase balancing, with each modified channel entering an in-use pool that recalculates an automatic linear distribution based on total channels modified/in-use (may cause LED flickering/skipped-cycle on PWM changes)
+    PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware to handle current sinkage (default)
+    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 256 steps (out of the 4096/12-bit value range) away from previous channel (may cause LED flickering/skipped-cycles on PWM changes)
 
     PCA9685_PhaseBalancer_Count,                // Internal use only
     PCA9685_PhaseBalancer_Undefined = -1        // Internal use only
 };
-// NOTE: Software-based phase balancing attempts to mitigate the situation whereby a
-// large current sink can occur at the start of the PWM phase range, especially when
-// multiple PWM channels are active. It does this by shifting the rising edge of each
-// PWM duty cycle by some amount so that this current sink occurs over the entire phase
-// range instead of all at once at the start of the phase range. Software-based phase
-// balancing is only necessary in situations where there isn't a hardware-based solution
-// present, such as when a proper capacitor is installed to handle current sinkage, as
-// is installed in most breakouts.
+// NOTE: Software-based phase balancing attempts to further mitigate ground bounce and
+// voltage spikes during phase shifts at the start/end of the PWM phase range by shifting
+// the leading edge of each successive PWM channel by some preset amount. This helps make
+// the current sinks/sources occur over the entire phase range instead of all together at
+// once. Software-based phase balancing can be useful in certain situations, but in
+// practice has been the source of many problems, including the case whereby the PCA9685
+// will skip a cycle between PWM changes when the leading/trailing edge is shifted past a
+// certain point. While we may revisit this idea in the future, for now we're content on
+// leaving None as the default.
 
 
 class PCA9685 {
@@ -220,7 +231,9 @@ public:
     // diminishes, as raw pre-scaler value, computed per datasheet, starts to require
     // much larger frequency increases for single-digit increases of the raw pre-scaler
     // value that ultimately controls the PWM frequency produced.
-    void setPWMFrequency(float pwmFrequency);
+    void setPWMFrequency(float pwmFrequency = 200);
+    // Sets standard servo frequency of 50Hz.
+    void setPWMFreqServo();
 
     // Turns channel either full on or full off
     void setChannelOn(int channel);
@@ -248,7 +261,7 @@ public:
     void disableSub2Address();
     void disableSub3Address();
 
-    // Allows external clock line to be utilized (once enabled cannot be disabled)
+    // Allows external clock line to be utilized (power reset required to disable)
     void enableExtClockLine();
 
     byte getLastI2CError();
@@ -295,18 +308,18 @@ protected:
 };
 
 // Class to assist with calculating Servo PWM values from angle/speed values
-class PCA9685_ServoEvaluator {
+class PCA9685_ServoEval {
 public:
     // Uses a linear interpolation method to quickly compute PWM output value. Uses
     // default values of 2.5% and 12.5% of phase length for -90/+90 (or -1x/+1x).
-    PCA9685_ServoEvaluator(uint16_t minPWMAmount = 102, uint16_t maxPWMAmount = 512);
+    PCA9685_ServoEval(uint16_t minPWMAmount = 102, uint16_t maxPWMAmount = 512);
 
     // Uses a cubic spline to interpolate due to an offsetted zero point that isn't
     // exactly between -90/+90 (or -1x/+1x). This takes more time to compute, but gives a
     // smoother PWM output value along the entire range.
-    PCA9685_ServoEvaluator(uint16_t minPWMAmount, uint16_t midPWMAmount, uint16_t maxPWMAmount);
+    PCA9685_ServoEval(uint16_t minPWMAmount, uint16_t midPWMAmount, uint16_t maxPWMAmount);
 
-    ~PCA9685_ServoEvaluator();
+    ~PCA9685_ServoEval();
 
     // Returns the PWM value to use given the angle offset (-90 to +90)
     uint16_t pwmForAngle(float angle);
