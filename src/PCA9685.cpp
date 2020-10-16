@@ -5,6 +5,7 @@
 */
 
 #include "PCA9685.h"
+#include <assert.h>
 
 #define PCA9685_I2C_BASE_MODULE_ADDRESS (byte)0x40
 #define PCA9685_I2C_BASE_MODULE_ADRMASK (byte)0x3F
@@ -46,6 +47,7 @@
 #define PCA9685_MIN_CHANNEL             0
 #define PCA9685_MAX_CHANNEL             (PCA9685_CHANNEL_COUNT - 1)
 #define PCA9685_ALLLED_CHANNEL          -1                  // Special value for ALLLED registers
+
 
 #ifdef PCA9685_USE_SOFTWARE_I2C
 boolean __attribute__((noinline)) i2c_init(void);
@@ -138,8 +140,7 @@ void PCA9685::init(PCA9685_OutputDriverMode driverMode,
     _updateMode = updateMode;
     _phaseBalancer = phaseBalancer;
 
-    if (_driverMode == PCA9685_OutputDriverMode_OpenDrain && _disabledMode == PCA9685_OutputDisabledMode_High)
-        _disabledMode = PCA9685_OutputDisabledMode_Floating;
+    assert(!(_driverMode == PCA9685_OutputDriverMode_OpenDrain && _disabledMode == PCA9685_OutputDisabledMode_High && "Unsupported combination"));
 
     byte mode2Val = getMode2Value();
 
@@ -278,18 +279,19 @@ byte PCA9685::getMode2Value() {
 
     if (_driverMode == PCA9685_OutputDriverMode_TotemPole) {
         mode2Val |= PCA9685_MODE2_OUTDRV_TPOLE;
-
-        if (_enabledMode == PCA9685_OutputEnabledMode_Inverted) {
-            mode2Val |= PCA9685_MODE2_INVRT;
-        }
-        if (_disabledMode == PCA9685_OutputDisabledMode_High) {
-            mode2Val |= PCA9685_MODE2_OUTNE_TPHIGH;
-        }
     }
 
-    if (_disabledMode == PCA9685_OutputDisabledMode_Floating) {
+    if (_enabledMode == PCA9685_OutputEnabledMode_Inverted) {
+        mode2Val |= PCA9685_MODE2_INVRT;
+    }
+
+    if (_disabledMode == PCA9685_OutputDisabledMode_High) {
+        mode2Val |= PCA9685_MODE2_OUTNE_TPHIGH;
+    }
+    else if (_disabledMode == PCA9685_OutputDisabledMode_Floating) {
         mode2Val |= PCA9685_MODE2_OUTNE_HIGHZ;
     }
+
     if (_updateMode == PCA9685_ChannelUpdateMode_AfterAck) {
         mode2Val |= PCA9685_MODE2_OCH_ONACK;
     }
@@ -644,8 +646,8 @@ void PCA9685::getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegi
                 break;
 
             case PCA9685_PhaseBalancer_Linear:
-                // Distribute high phase area over entire phase range to balance load
-                *phaseBegin = channel * (4096 / 16);
+                // Distribute high phase area over more of the duty cycle range to balance load
+                *phaseBegin = channel * ((4096 / 16) / 16);
                 break;
         }
     }
@@ -986,7 +988,7 @@ void PCA9685::checkForErrors() {
 PCA9685_ServoEval::PCA9685_ServoEval(uint16_t minPWMAmount, uint16_t maxPWMAmount)
     : _coeff(NULL), _isCSpline(false)
 {
-    minPWMAmount = constrain(minPWMAmount, 0, PCA9685_PWM_FULL);
+    minPWMAmount = min(minPWMAmount, PCA9685_PWM_FULL);
     maxPWMAmount = constrain(maxPWMAmount, minPWMAmount, PCA9685_PWM_FULL);
 
     _coeff = new float[2];
@@ -999,7 +1001,7 @@ PCA9685_ServoEval::PCA9685_ServoEval(uint16_t minPWMAmount, uint16_t maxPWMAmoun
 PCA9685_ServoEval::PCA9685_ServoEval(uint16_t minPWMAmount, uint16_t midPWMAmount, uint16_t maxPWMAmount)
     : _coeff(NULL), _isCSpline(false)
 {
-    minPWMAmount = constrain(minPWMAmount, 0, PCA9685_PWM_FULL);
+    minPWMAmount = min(minPWMAmount, PCA9685_PWM_FULL);
     midPWMAmount = constrain(midPWMAmount, minPWMAmount, PCA9685_PWM_FULL);
     maxPWMAmount = constrain(maxPWMAmount, midPWMAmount, PCA9685_PWM_FULL);
 
@@ -1070,7 +1072,7 @@ uint16_t PCA9685_ServoEval::pwmForAngle(float angle) {
         }
     }
 
-    return (uint16_t)constrain((uint16_t)roundf(retVal), 0, PCA9685_PWM_FULL);
+    return (uint16_t)min((uint16_t)roundf(retVal), PCA9685_PWM_FULL);
 };
 
 uint16_t PCA9685_ServoEval::pwmForSpeed(float speed) {

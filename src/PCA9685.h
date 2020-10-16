@@ -119,7 +119,10 @@ enum PCA9685_OutputEnabledMode {
 // outputs of the IC and PWM output pins, which is useful when powering LEDs. The V+ rail
 // of most breakouts can connect through a 10v 1000μF decoupling capacitor, typically
 // already installed on most breakouts, which can reduce voltage spikes and ground bounce
-// when many channel devices are connected together.
+// during phase shifts at the start/end of the PWM high phase when many channel devices
+// are connected together. See https://forums.adafruit.com/viewtopic.php?f=8&t=127421 and
+// https://forums.adafruit.com/viewtopic.php?f=8&t=162688 for information on installing
+// a decoupling capacitor if need arises.
 
 // Output-not-enabled/active-low-OE-pin=HIGH driver output mode (see datasheet Section
 // 7.4 concerning correct usage of OUTNE).
@@ -146,20 +149,20 @@ enum PCA9685_ChannelUpdateMode {
 // Software-based phase balancing scheme.
 enum PCA9685_PhaseBalancer {
     PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware to handle current sinkage (default)
-    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 256 steps (out of the 4096/12-bit value range) away from previous channel (may cause LED flickering/skipped-cycles on PWM changes)
+    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 16 steps (out of the 4096/12-bit value range) away from previous channel (may cause LED flickering/skipped-cycles on PWM changes)
 
     PCA9685_PhaseBalancer_Count,                // Internal use only
     PCA9685_PhaseBalancer_Undefined = -1        // Internal use only
 };
 // NOTE: Software-based phase balancing attempts to further mitigate ground bounce and
-// voltage spikes during phase shifts at the start/end of the PWM phase range by shifting
-// the leading edge of each successive PWM channel by some preset amount. This helps make
-// the current sinks/sources occur over the entire phase range instead of all together at
+// voltage spikes during phase shifts at the start/end of the PWM high phase by shifting
+// the leading edge of each successive PWM high phase by some amount. This helps make
+// the current sinks occur over the entire duty cycle range instead of all together at
 // once. Software-based phase balancing can be useful in certain situations, but in
 // practice has been the source of many problems, including the case whereby the PCA9685
 // will skip a cycle between PWM changes when the leading/trailing edge is shifted past a
 // certain point. While we may revisit this idea in the future, for now we're content on
-// leaving None as the default.
+// leaving None as the default, and limiting the shift that Linear applies.
 
 
 class PCA9685 {

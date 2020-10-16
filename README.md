@@ -139,7 +139,10 @@ enum PCA9685_OutputEnabledMode {
 // outputs of the IC and PWM output pins, which is useful when powering LEDs. The V+ rail
 // of most breakouts can connect through a 10v 1000μF decoupling capacitor, typically
 // already installed on most breakouts, which can reduce voltage spikes and ground bounce
-// when many channel devices are connected together.
+// during phase shifts at the start/end of the PWM high phase when many channel devices
+// are connected together. See https://forums.adafruit.com/viewtopic.php?f=8&t=127421 and
+// https://forums.adafruit.com/viewtopic.php?f=8&t=162688 for information on installing
+// a decoupling capacitor if need arises.
 
 // Output-not-enabled/active-low-OE-pin=HIGH driver output mode (see datasheet Section
 // 7.4 concerning correct usage of OUTNE).
@@ -160,17 +163,17 @@ enum PCA9685_ChannelUpdateMode {
 // Software-based phase balancing scheme.
 enum PCA9685_PhaseBalancer {
     PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware to handle current sinkage (default)
-    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 256 steps (out of the 4096/12-bit value range) away from previous channel (may cause LED flickering/skipped-cycles on PWM changes)
+    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 16 steps (out of the 4096/12-bit value range) away from previous channel (may cause LED flickering/skipped-cycles on PWM changes)
 };
 // NOTE: Software-based phase balancing attempts to further mitigate ground bounce and
-// voltage spikes during phase shifts at the start/end of the PWM phase range by shifting
-// the leading edge of each successive PWM channel by some preset amount. This helps make
-// the current sinks/sources occur over the entire phase range instead of all together at
+// voltage spikes during phase shifts at the start/end of the PWM high phase by shifting
+// the leading edge of each successive PWM high phase by some amount. This helps make
+// the current sinks occur over the entire duty cycle range instead of all together at
 // once. Software-based phase balancing can be useful in certain situations, but in
 // practice has been the source of many problems, including the case whereby the PCA9685
 // will skip a cycle between PWM changes when the leading/trailing edge is shifted past a
 // certain point. While we may revisit this idea in the future, for now we're content on
-// leaving None as the default.
+// leaving None as the default, and limiting the shift that Linear applies.
 ```
 
 #### Device Reset
@@ -196,7 +199,7 @@ From PCA9685.h, in class PCA9685:
 * Be aware that driving some 180° servos too far past their -90°/+90° operational range can cause a little plastic limiter pin to break off and get stuck inside of the servo's gearing, which could potentially cause the servo to become jammed and no longer function.
 * Continuous servos operate in much the same fashion as 180° servos, but instead of the 2.5%/12.5% pulse width controlling a -90°/+90° offset it controls a -1x/+1x speed multiplier, with 0x being parked/no-movement and -1x/+1x being maximum speed in either direction.
 
-See the PCA9685_ServoEval class to assist with calculating PWM values from Servo angle/speed values, if you desire that level of fine tuning.
+See the `PCA9685_ServoEval` class to assist with calculating PWM values from Servo angle/speed values, if you desire that level of fine tuning.
 
 ## Example Usage
 
@@ -281,7 +284,7 @@ void loop() {
 
 ### Multi-Device Proxy Example
 
-In this example, we use a special instance to control other modules attached to it via the ALL_CALL register.
+In this example, we use a special instance to control other modules attached to it via the `ALL_CALL` register.
 
 ```Arduino
 #include "PCA9685.h"
@@ -326,9 +329,9 @@ void loop() {
 
 ### Servo Evaluator Example
 
-In this example, we utilize the ServoEvaluator class to assist with setting PWM frequencies when working with servos.
+In this example, we utilize the `PCA9685_ServoEval` class to assist with setting PWM frequencies when working with servos.
 
-We will be using Wire1, which is only available on boards with SDA1/SCL1 (e.g. Due/Mega/etc.) - change to Wire if Wire1 is unavailable.
+We will be using `Wire1`, which is only available on boards with SDA1/SCL1 (e.g. Due/Mega/etc.) - change to `Wire` if `Wire1` is unavailable.
 
 ```Arduino
 #include "PCA9685.h"
@@ -389,7 +392,7 @@ void loop() {
 
 In this example, we utilize a popular software i2c library for chips that do not have a hardware i2c bus, available at <http://playground.arduino.cc/Main/SoftwareI2CLibrary>.
 
-If one uncomments the line below inside the main header file (or defines it via custom build flag), software i2c mode for the library will be enabled. Additionally, you will need to correctly define SCL_PIN, SCL_PORT, SDA_PIN, and SDA_PORT according to your setup. I2C_FASTMODE=1 should be set for 16MHz+ processors. Lastly note that, while in software i2c mode, the i2c clock speed returned by the library (via `getI2CSpeed()`) is only an upper bound and may not represent the actual i2c clock speed set nor achieved.
+If one uncomments the line below inside the main header file (or defines it via custom build flag), software i2c mode for the library will be enabled. Additionally, you will need to correctly define `SCL_PIN`, `SCL_PORT`, `SDA_PIN`, and `SDA_PORT` according to your setup. `I2C_FASTMODE=1` should be set for 16MHz+ processors. Lastly note that, while in software i2c mode, the i2c clock speed returned by the library (via `getI2CSpeed()`) is only an upper bound and may not represent the actual i2c clock speed set nor achieved.
 
 In PCA9685.h:
 ```Arduino
@@ -444,7 +447,7 @@ void loop() {
 
 In this example, we enable debug output support to print out module diagnostic information.
 
-If one uncomments the line below inside the main header file (or defines it via custom build flag), debug output support will be enabled and the printModuleInfo() method will become available. Calling this method will display information about the module itself, including initalized states, register values, current settings, etc. Additionally, all library calls being made will display internal debug information about the structure of the call itself. An example of this output is shown below.
+If one uncomments the line below inside the main header file (or defines it via custom build flag), debug output support will be enabled and the `printModuleInfo()` method will become available. Calling this method will display information about the module itself, including initalized states, register values, current settings, etc. Additionally, all library calls being made will display internal debug information about the structure of the call itself. An example of this output is shown below.
 
 In PCA9685.h:
 ```Arduino
