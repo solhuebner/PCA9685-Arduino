@@ -2,21 +2,19 @@
 // In this example, we randomly select PWM frequencies on all 12 outputs and allow them
 // to drive for 5 seconds before changing them.
 
-#include <Wire.h>
 #include "PCA9685.h"
 
-PCA9685 pwmController;                  // Library using default Wire and default linear phase balancing scheme
+PCA9685 pwmController(B010101);         // Library using B010101 (A5-A0) i2c address, and default Wire @400kHz
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(115200);               // Begin Serial and Wire interfaces
+    Wire.begin();
 
-    Wire.begin();                       // Wire must be started first
-    Wire.setClock(400000);              // Supported baud rates are 100kHz, 400kHz, and 1000kHz
+    pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
-    pwmController.resetDevices();       // Software resets all PCA9685 devices on Wire line
+    pwmController.init();               // Initializes module using default totem-pole driver mode, and default phase balancer
 
-    pwmController.init(B010101);        // Address pins A5-A0 set to B010101, default mode settings
-    pwmController.setPWMFrequency(500); // Default is 200Hz, supports 24Hz to 1526Hz
+    pwmController.setPWMFrequency(500); // Set PWM freq to 500Hz (default is 200Hz, supports 24Hz to 1526Hz)
 
     randomSeed(analogRead(0));          // Use white noise for our randomness
 }
@@ -38,6 +36,11 @@ void loop() {
     pwmController.setChannelsPWM(0, 12, pwms);
     delay(5000);
 
-    // Note: Only 7 channels can be written in one i2c transaction due to a
-    // BUFFER_LENGTH limit of 32, so 12 channels will take two i2c transactions.
+    // NOTE: Many chips use a BUFFER_LENGTH size of 32, and in that case writing 12
+    // channels will take 2 i2c transactions because only 7 channels can fit in a single
+    // i2c buffer transaction at a time. This may cause a slight offset flicker between
+    // the first 7 and remaining 5 channels, but can be offset by experimenting with a
+    // channel update mode of PCA9685_ChannelUpdateMode_AfterAck. This will make each
+    // channel update immediately upon sending of the Ack signal after each PWM command
+    // is executed rather than at the Stop signal at the end of the i2c transaction.
 }
