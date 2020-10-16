@@ -41,7 +41,8 @@
 #define PCA9685_MODE2_OCH_ONACK         (byte)0x08
 
 #define PCA9685_SW_RESET                (byte)0x06          // Sent to address 0x00 to reset all devices on Wire line
-#define PCA9685_PWM_FULL                (uint16_t)0x01000   // Special value for full on/full off LEDx modes
+#define PCA9685_PWM_FULL                (uint16_t)0x1000    // Special value for full on/full off LEDx modes
+#define PCA9685_PWM_MASK                (uint16_t)0x0FFF    // Mask for 12-bit/4096 possible phase positions
 
 #define PCA9685_CHANNEL_COUNT           16
 #define PCA9685_MIN_CHANNEL             0
@@ -647,7 +648,7 @@ void PCA9685::getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegi
 
             case PCA9685_PhaseBalancer_Linear:
                 // Distribute high phase area over more of the duty cycle range to balance load
-                *phaseBegin = channel * ((4096 / 16) / 16);
+                *phaseBegin = (channel * ((4096 / 16) / 16)) & PCA9685_PWM_MASK;
                 break;
         }
     }
@@ -663,9 +664,7 @@ void PCA9685::getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegi
         *phaseEnd = 0;
     }
     else {
-        *phaseEnd = *phaseBegin + pwmAmount;
-        if (*phaseEnd >= PCA9685_PWM_FULL)
-            *phaseEnd -= PCA9685_PWM_FULL;
+        *phaseEnd = (*phaseBegin + pwmAmount) & PCA9685_PWM_MASK;
     }
 }
 
