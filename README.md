@@ -1,7 +1,7 @@
 # PCA9685-Arduino
 Arduino Library for the PCA9685 16-Channel PWM Driver Module.
 
-**PCA9685-Arduino - Version 1.2.15**
+**PCA9685-Arduino - Version 1.3.0**
 
 Library to control a PCA9685 16-channel PWM driver module from an Arduino board.  
 Licensed under the copy-left GNU GPL v3 license.
@@ -12,7 +12,7 @@ Forked by NachtRaveVL, July 29th, 2016.
 
 This library allows communication with boards running a PCA6985 16-channel PWM driver module. It supports a wide range of available functionality, from setting the output PWM frequecy, allowing multi-device proxy addressing, and provides an assistant class for working with Servos.
 
-Made primarily for Arduino microcontrollers, but should work with PlatformIO, ESP32/8266, Teensy, and others - although one might want to ensure BUFFER_LENGTH (or I2C_BUFFER_LENGTH) and WIRE_INTERFACES_COUNT is properly defined for any architecture used.
+Made primarily for Arduino microcontrollers, but should work with PlatformIO, ESP32/8266, Teensy, and others - although one might want to ensure `BUFFER_LENGTH` (or `I2C_BUFFER_LENGTH`) and `WIRE_INTERFACES_COUNT` is properly defined for any architecture used.
 
 The datasheet for the IC is available at <http://www.nxp.com/documents/data_sheet/PCA9685.pdf>.
 
@@ -77,7 +77,7 @@ From PCA9685.h, in class PCA9685, when in software i2c mode (see examples for sa
 
 #### Device Initialization
 
-Additionally, a call is expected to be provided to the library class object's `init(...)` or `initAsProxyAddresser()` methods, commonly called inside of the sketch's `setup()` function. The `init(...)` method allows one to set the module's driver mode, enabled/disabled output settings, channel update mode, and phase balancer scheme, while the `initAsProxyAddresser()` method allows one to setup the object as a proxy addresser (see examples for sample usage). The default init values of the library, if left unspecified, is `PCA9685_OutputDriverMode_TotemPole`, `PCA9685_OutputEnabledMode_Normal`, `PCA9685_OutputDisabledMode_Low`, `PCA9685_ChannelUpdateMode_AfterStop`, and `PCA9685_PhaseBalancer_None` which seems to work for most of the PCA9685 breakouts on market, but should be set according to your setup.
+Additionally, a call is expected to be provided to the library class object's `init(…)` or `initAsProxyAddresser()` methods, commonly called inside of the sketch's `setup()` function. This allows one to set the module's driver mode, enabled/disabled output settings, channel update mode, and phase balancer scheme, while the `initAsProxyAddresser()` method allows one to setup the object as a proxy addresser (see examples for sample usage). The default init values of the library, if left unspecified, is `PCA9685_OutputDriverMode_TotemPole`, `PCA9685_OutputEnabledMode_Normal`, `PCA9685_OutputDisabledMode_Low`, `PCA9685_ChannelUpdateMode_AfterStop`, and `PCA9685_PhaseBalancer_None` which seems to work for most of the PCA9685 breakouts on market, but should be set according to your setup.
 
 See Section 7.3.2 of the datasheet for more details.
 
@@ -162,8 +162,9 @@ enum PCA9685_ChannelUpdateMode {
 
 // Software-based phase balancing scheme.
 enum PCA9685_PhaseBalancer {
-    PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware to handle current sinkage (default)
-    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 16 steps (out of the 4096/12-bit value range) away from previous channel (may cause LED flickering/skipped-cycles on PWM changes)
+    PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware (10v 1F decoupling capacitor) to handle current sinkage and sourcing (default)
+    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 16 steps (out of the 4096/12-bit value range) away from previous channel, capped at a maximum HIGH phase end position of 4096 steps.
+    PCA9685_PhaseBalancer_Dynamic,              // Uses dynamic software-based phase balancing, with each modified channel entering an in-use pool that recalculates an automatic distribution based on total channels modified/in-use (uses more processor time and i2c updates)
 };
 // NOTE: Software-based phase balancing attempts to further mitigate ground bounce and
 // voltage spikes during phase shifts at the start/end of the PWM high phase by shifting
@@ -199,7 +200,7 @@ From PCA9685.h, in class PCA9685:
 * Be aware that driving some 180° servos too far past their -90°/+90° operational range can cause a little plastic limiter pin to break off and get stuck inside of the servo's gearing, which could potentially cause the servo to become jammed and no longer function.
 * Continuous servos operate in much the same fashion as 180° servos, but instead of the 2.5%/12.5% pulse width controlling a -90°/+90° offset it controls a -1x/+1x speed multiplier, with 0x being parked/no-movement and -1x/+1x being maximum speed in either direction.
 
-See the `PCA9685_ServoEval` class to assist with calculating PWM values from Servo angle/speed values, if you desire that level of fine tuning.
+See the `PCA9685_ServoEval` class to assist with calculating PWM values from Servo angle/speed values.
 
 ## Example Usage
 
@@ -244,6 +245,7 @@ PCA9685 pwmController(B010101);         // Library using B010101 (A5-A0) i2c add
 void setup() {
     Serial.begin(115200);               // Begin Serial and Wire interfaces
     Wire.begin();
+    Wire.setClock(pwmController.getI2CSpeed());
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
@@ -298,6 +300,7 @@ PCA9685 pwmControllerAll(PCA9685_I2C_DEF_ALLCALL_PROXYADR);
 void setup() {
     Serial.begin(115200);               // Begin Serial and Wire interfaces
     Wire.begin();
+    Wire.setClock(pwmController.getI2CSpeed());
 
     pwmControllerAll.resetDevices();    // Resets all PCA9685 devices on i2c line
 
@@ -351,6 +354,7 @@ PCA9685_ServoEval pwmServo2(128,324,526);
 void setup() {
     Serial.begin(115200);               // Begin Serial and Wire1 interfaces
     Wire1.begin();
+    Wire1.setClock(pwmController.getI2CSpeed());
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
@@ -468,6 +472,7 @@ PCA9685 pwmController;                  // Library using default B000000 (A5-A0)
 void setup() {
     Serial.begin(115200);               // Begin Serial and Wire interfaces
     Wire.begin();
+    Wire.setClock(pwmController.getI2CSpeed());
 
     pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
 

@@ -19,7 +19,7 @@
     Forked by Vitska, June 18th, 2016.
     Forked by NachtRaveVL, July 29th, 2016.
 
-    PCA9685-Arduino - Version 1.2.15
+    PCA9685-Arduino - Version 1.3.0
 */
 
 #ifndef PCA9685_H
@@ -33,6 +33,9 @@
 
 // Uncomment or -D this define to enable use of the software i2c library (min 4MHz+ processor).
 //#define PCA9685_ENABLE_SOFTWARE_I2C             // http://playground.arduino.cc/Main/SoftwareI2CLibrary
+
+// Uncomment or -D this define to disable usage of the Scheduler library on SAM/SAMD architecures.
+//#define PCA9685_DISABLE_SCHEDULER               // https://github.com/arduino-libraries/Scheduler
 
 // Uncomment or -D this define to swap PWM low(begin)/high(end) phase values in register reads/writes (needed for some chip manufacturers).
 //#define PCA9685_SWAP_PWM_BEG_END_REGS
@@ -60,6 +63,11 @@
 #include <Arduino.h>
 #else
 #include <WProgram.h>
+#endif
+
+#if !defined(PCA9685_DISABLE_SCHEDULER) && (defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD))
+#include "Scheduler.h"
+#define PCA9685_USE_SCHEDULER
 #endif
 
 #ifndef PCA9685_ENABLE_SOFTWARE_I2C
@@ -148,8 +156,9 @@ enum PCA9685_ChannelUpdateMode {
 
 // Software-based phase balancing scheme.
 enum PCA9685_PhaseBalancer {
-    PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware to handle current sinkage (default)
-    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel being a preset 16 steps (out of the 4096/12-bit value range) away from previous channel (may cause LED flickering/skipped-cycles on PWM changes)
+    PCA9685_PhaseBalancer_None,                 // Disables software-based phase balancing, relying on installed hardware (10v 1F decoupling capacitor) to handle current sinkage and sourcing (default)
+    PCA9685_PhaseBalancer_Linear,               // Uses linear software-based phase balancing, with each channel's leading edge being offset a preset 256 steps away from previous channel, with PWM values growing their HIGH phase area bidirectionally from such offset (beg/end clamped at [0,4095])
+    PCA9685_PhaseBalancer_Dynamic,              // Uses dynamic software-based phase balancing, with each modified channel entering an in-use pool that recalculates an automatic distribution based on total channels modified/in-use (uses more processor time and i2c updates)
 
     PCA9685_PhaseBalancer_Count,                // Internal use only
     PCA9685_PhaseBalancer_Undefined = -1        // Internal use only
@@ -158,11 +167,8 @@ enum PCA9685_PhaseBalancer {
 // voltage spikes during phase shifts at the start/end of the PWM high phase by shifting
 // the leading edge of each successive PWM high phase by some amount. This helps make
 // the current sinks occur over the entire duty cycle range instead of all together at
-// once. Software-based phase balancing can be useful in certain situations, but in
-// practice has been the source of many problems, including the case whereby the PCA9685
-// will skip a cycle between PWM changes when the leading/trailing edge is shifted past a
-// certain point. While we may revisit this idea in the future, for now we're content on
-// leaving None as the default, and limiting the shift that Linear applies.
+// once. Software-based phase balancing can be useful in certain situations, but often
+// isn't required. 
 
 
 class PCA9685 {
@@ -230,6 +236,15 @@ public:
     PCA9685_ChannelUpdateMode getChannelUpdateMode();
     PCA9685_PhaseBalancer getPhaseBalancer();
 
+    typedef void(*UserDelayFunc)(unsigned int);             // Passes delay timeout (where 0 indicates inside long blocking call / yield attempt suggested)
+    // Sets user delay functions to call when a delay has to occur for processing to
+    // continue. User functions here can customize what this means - typically it would
+    // mean to call into a thread barrier() or yield() mechanism. Default implementation
+    // simply calls standard delay() and delayMicroseconds(), unless on SAM/SAMD
+    // architectures where Scheduler is available, in which case when timeout > 1ms
+    // Scheduler.yield() is called until timeout expires.
+    void setUserDelayFuncs(UserDelayFunc delayMillisFunc, UserDelayFunc delayMicrosFunc);
+
     // Min: 24Hz, Max: 1526Hz, Default: 200Hz. As Hz increases channel resolution
     // diminishes, as raw pre-scaler value, computed per datasheet, starts to require
     // much larger frequency increases for single-digit increases of the raw pre-scaler
@@ -287,6 +302,9 @@ protected:
     PCA9685_ChannelUpdateMode _updateMode;                  // Channel update mode
     PCA9685_PhaseBalancer _phaseBalancer;                   // Phase balancer scheme
     bool _isProxyAddresser;                                 // Proxy addresser flag (disables certain functionality)
+    UserDelayFunc _uDelayMillisFunc;                        // User millisecond delay function
+    UserDelayFunc _uDelayMicrosFunc;                        // User microsecond delay function
+
     byte _lastI2CError;                                     // Last module i2c error
 
     byte getMode2Value();
@@ -302,7 +320,6 @@ protected:
 #ifdef PCA9685_USE_SOFTWARE_I2C
     uint8_t _readBytes;
 #endif
-    void i2cWire_begin();
     void i2cWire_beginTransmission(uint8_t);
     uint8_t i2cWire_endTransmission(void);
     uint8_t i2cWire_requestFrom(uint8_t, uint8_t);

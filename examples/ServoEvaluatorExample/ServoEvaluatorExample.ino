@@ -20,6 +20,7 @@ PCA9685_ServoEval pwmServo2(128,324,526);
 void setup() {
     Serial.begin(115200);               // Begin Serial and Wire1 interfaces
     Wire1.begin();
+    Wire1.setClock(pwmController.getI2CSpeed());
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 

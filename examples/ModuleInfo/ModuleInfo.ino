@@ -23,6 +23,7 @@ PCA9685 pwmController;                  // Library using default B000000 (A5-A0)
 void setup() {
     Serial.begin(115200);               // Begin Serial and Wire interfaces
     Wire.begin();
+    Wire.setClock(pwmController.getI2CSpeed());
 
     pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
 

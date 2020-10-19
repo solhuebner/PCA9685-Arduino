@@ -49,6 +49,8 @@
 #define PCA9685_MAX_CHANNEL             (PCA9685_CHANNEL_COUNT - 1)
 #define PCA9685_ALLLED_CHANNEL          -1                  // Special value for ALLLED registers
 
+#define PCA9685_PBLIN_STEPS             (PCA9685_PWM_FULL / PCA9685_CHANNEL_COUNT) // Step size per channnel for linear phase balancing
+
 
 #ifdef PCA9685_USE_SOFTWARE_I2C
 boolean __attribute__((noinline)) i2c_init(void);
@@ -57,6 +59,53 @@ void __attribute__((noinline)) PCA9685_i2c_stop(void) asm("ass_i2c_stop");
 bool __attribute__((noinline)) PCA9685_i2c_write(uint8_t value) asm("ass_i2c_write");
 uint8_t __attribute__((noinline)) i2c_read(bool last);
 #endif
+
+static void uDelayMillisFuncDef(unsigned int timeout) {
+#ifdef PCA9685_USE_SCHEDULER
+    if (timeout > 0) {
+        unsigned long currTime = millis();
+        unsigned long endTime = currTime + (unsigned long)timeout;
+        if (currTime < endTime) { // not overflowing
+            while (millis() < endTime)
+                Scheduler.yield();
+        } else { // overflowing
+            unsigned long begTime = currTime;
+            while (currTime >= begTime || currTime < endTime) {
+                Scheduler.yield();
+                currTime = millis();
+            }
+        }
+    } else
+        Scheduler.yield();
+#else
+    delay(timeout);
+#endif
+}
+
+static void uDelayMicrosFuncDef(unsigned int timeout) {
+#ifdef PCA9685_USE_SCHEDULER
+    if (timeout > 1000) {
+        unsigned long currTime = micros();
+        unsigned long endTime = currTime + (unsigned long)timeout;
+        if (currTime < endTime) { // not overflowing
+            while (micros() < endTime)
+                Scheduler.yield();
+        } else { // overflowing
+            unsigned long begTime = currTime;
+            while (currTime >= begTime || currTime < endTime) {
+                Scheduler.yield();
+                currTime = micros();
+            }
+        }
+    } else if (timeout > 0)
+        delayMicroseconds(timeout);
+    else
+        Scheduler.yield();
+#else
+    delayMicroseconds(timeout);
+#endif
+}
+
 
 #ifndef PCA9685_USE_SOFTWARE_I2C
 
@@ -72,6 +121,7 @@ PCA9685::PCA9685(byte i2cAddress, TwoWire& i2cWire, uint32_t i2cSpeed)
       _updateMode(PCA9685_ChannelUpdateMode_Undefined),
       _phaseBalancer(PCA9685_PhaseBalancer_Undefined),
       _isProxyAddresser(false),
+      _uDelayMillisFunc(uDelayMillisFuncDef), _uDelayMicrosFunc(uDelayMicrosFuncDef),
       _lastI2CError(0)
 { }
 
@@ -85,6 +135,7 @@ PCA9685::PCA9685(TwoWire& i2cWire, uint32_t i2cSpeed, byte i2cAddress)
       _updateMode(PCA9685_ChannelUpdateMode_Undefined),
       _phaseBalancer(PCA9685_PhaseBalancer_Undefined),
       _isProxyAddresser(false),
+      _uDelayMillisFunc(uDelayMillisFuncDef), _uDelayMicrosFunc(uDelayMicrosFuncDef),
       _lastI2CError(0)
 { }
 
@@ -99,6 +150,7 @@ PCA9685::PCA9685(byte i2cAddress)
       _updateMode(PCA9685_ChannelUpdateMode_Undefined),
       _phaseBalancer(PCA9685_PhaseBalancer_Undefined),
       _isProxyAddresser(false),
+      _uDelayMillisFunc(uDelayMillisFuncDef), _uDelayMicrosFunc(uDelayMicrosFuncDef),
       _lastI2CError(0)
 { }
 
@@ -109,8 +161,6 @@ void PCA9685::resetDevices() {
     Serial.println("PCA9685::resetDevices");
 #endif
 
-    i2cWire_begin();
-
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
     checkForErrors();
 #endif
@@ -119,7 +169,7 @@ void PCA9685::resetDevices() {
     i2cWire_write(PCA9685_SW_RESET);
     i2cWire_endTransmission();
 
-    delayMicroseconds(10);
+    _uDelayMicrosFunc(10);
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
     checkForErrors();
@@ -191,14 +241,13 @@ void PCA9685::init(PCA9685_OutputDriverMode driverMode,
     switch(_phaseBalancer) {
         case PCA9685_PhaseBalancer_None: Serial.print("None"); break;
         case PCA9685_PhaseBalancer_Linear: Serial.print("Linear"); break;
+        case PCA9685_PhaseBalancer_Dynamic: Serial.print("Dynamic"); break;
         case PCA9685_PhaseBalancer_Count:
         case PCA9685_PhaseBalancer_Undefined:
             Serial.print(_phaseBalancer); break;
     }
     Serial.println("");
 #endif
-
-    i2cWire_begin();
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
     checkForErrors();
@@ -231,8 +280,6 @@ void PCA9685::initAsProxyAddresser() {
     Serial.print(roundf(getI2CSpeed() / 1000.0f)); Serial.print("kHz");
     Serial.println("");
 #endif
-
-    i2cWire_begin();
 
 #ifdef PCA9685_ENABLE_DEBUG_OUTPUT
     checkForErrors();
@@ -300,6 +347,11 @@ byte PCA9685::getMode2Value() {
     return mode2Val;
 }
 
+void PCA9685::setUserDelayFuncs(UserDelayFunc delayMillisFunc, UserDelayFunc delayMicrosFunc) {
+    _uDelayMillisFunc = delayMillisFunc ? delayMillisFunc : uDelayMillisFuncDef;
+    _uDelayMicrosFunc = delayMicrosFunc ? delayMicrosFunc : uDelayMicrosFuncDef;
+}
+
 void PCA9685::setPWMFrequency(float pwmFrequency) {
     if (pwmFrequency < 0 || _isProxyAddresser) return;
 
@@ -323,7 +375,7 @@ void PCA9685::setPWMFrequency(float pwmFrequency) {
 
     // It takes 500us max for the oscillator to be up and running once SLEEP bit has been set to logic 0.
     writeRegister(PCA9685_MODE1_REG, (mode1Reg = (mode1Reg & ~PCA9685_MODE1_SLEEP) | PCA9685_MODE1_RESTART));
-    delayMicroseconds(500);
+    _uDelayMicrosFunc(500);
 }
 
 void PCA9685::setPWMFreqServo() {
@@ -467,7 +519,7 @@ uint16_t PCA9685::getChannelPWM(int channel) {
     uint16_t phaseBegin = (uint16_t)i2cWire_read();
     phaseBegin |= (uint16_t)i2cWire_read() << 8;
 #endif
-    
+
 #ifdef PCA9685_USE_SOFTWARE_I2C
     PCA9685_i2c_stop(); // Manually have to send stop bit in software i2c mode
 #endif
@@ -627,7 +679,7 @@ void PCA9685::enableExtClockLine() {
 
     // It takes 500us max for the oscillator to be up and running once SLEEP bit has been set to logic 0.
     writeRegister(PCA9685_MODE1_REG, (mode1Reg = (mode1Reg & ~PCA9685_MODE1_SLEEP) | PCA9685_MODE1_RESTART));
-    delayMicroseconds(500);
+    _uDelayMicrosFunc(500);
 }
 
 byte PCA9685::getLastI2CError() {
@@ -635,36 +687,43 @@ byte PCA9685::getLastI2CError() {
 }
 
 void PCA9685::getPhaseCycle(int channel, uint16_t pwmAmount, uint16_t *phaseBegin, uint16_t *phaseEnd) {
-    if (channel == PCA9685_ALLLED_CHANNEL) {
-        *phaseBegin = 0; // ALLLED should not receive a phase shifted begin value
+    // See datasheet section 7.3.3
+    if (pwmAmount == 0) {
+        // Full OFF -> time_end[bit12] = 1
+        *phaseBegin = 0;
+        *phaseEnd = PCA9685_PWM_FULL;
+    }
+    else if (pwmAmount >= PCA9685_PWM_FULL) {
+        // Full ON -> time_beg[bit12] = 1, time_end[bit12] = <ignored>
+        *phaseBegin = PCA9685_PWM_FULL;
+        *phaseEnd = 0;
+    } else if (channel == PCA9685_ALLLED_CHANNEL) {
+        // ALLLED should not receive a phase shifted begin value
+        *phaseBegin = 0;
+        *phaseEnd = (*phaseBegin + pwmAmount) & PCA9685_PWM_MASK;
     } else {
-        // Get phase delay begin
+        // Get HIGH phase offset beg/end based on phase balancing scheme
         switch(_phaseBalancer) {
             case PCA9685_PhaseBalancer_None:
             case PCA9685_PhaseBalancer_Count:
             case PCA9685_PhaseBalancer_Undefined:
                 *phaseBegin = 0;
+                *phaseEnd = (*phaseBegin + pwmAmount) & PCA9685_PWM_MASK;
                 break;
 
             case PCA9685_PhaseBalancer_Linear:
-                // Distribute high phase area over more of the duty cycle range to balance load
-                *phaseBegin = (channel * ((4096 / 16) / 16)) & PCA9685_PWM_MASK;
+                // Distribute HIGH phase area over more of the duty cycle range to balance load
+                *phaseBegin = (uint16_t)max((int_fast16_t)0, (int_fast16_t)(channel * PCA9685_PBLIN_STEPS) - (int_fast16_t)(pwmAmount >> 1));
+                *phaseEnd = min(PCA9685_PWM_FULL - 1, *phaseBegin + pwmAmount);
+                *phaseBegin = *phaseEnd - pwmAmount;
+                break;
+
+            case PCA9685_PhaseBalancer_Dynamic:
+                // TODO: Dynamic phase balancing. -NR
+                *phaseBegin = 0;
+                *phaseEnd = (*phaseBegin + pwmAmount) & PCA9685_PWM_MASK;
                 break;
         }
-    }
-
-    // See datasheet section 7.3.3
-    if (pwmAmount == 0) {
-        // Full OFF -> time_end[bit12] = 1
-        *phaseEnd = PCA9685_PWM_FULL;
-    }
-    else if (pwmAmount >= PCA9685_PWM_FULL) {
-        // Full ON -> time_beg[bit12] = 1, time_end[bit12] = <ignored>
-        *phaseBegin |= PCA9685_PWM_FULL;
-        *phaseEnd = 0;
-    }
-    else {
-        *phaseEnd = (*phaseBegin + pwmAmount) & PCA9685_PWM_MASK;
     }
 }
 
@@ -777,13 +836,6 @@ byte PCA9685::readRegister(byte regAddress) {
     return retVal;
 }
 
-void PCA9685::i2cWire_begin() {
-    _lastI2CError = 0;
-#ifndef PCA9685_USE_SOFTWARE_I2C
-    _i2cWire->setClock(getI2CSpeed());
-#endif
-}
-
 void PCA9685::i2cWire_beginTransmission(uint8_t addr) {
     _lastI2CError = 0;
 #ifndef PCA9685_USE_SOFTWARE_I2C
@@ -892,6 +944,8 @@ void PCA9685::printModuleInfo() {
             Serial.println("PCA9685_PhaseBalancer_None"); break;
         case PCA9685_PhaseBalancer_Linear:
             Serial.println("PCA9685_PhaseBalancer_Linear"); break;
+        case PCA9685_PhaseBalancer_Dynamic:
+            Serial.println("PCA9685_PhaseBalancer_Dynamic"); break;
         case PCA9685_PhaseBalancer_Count:
         case PCA9685_PhaseBalancer_Undefined:
             Serial.println(""); break;

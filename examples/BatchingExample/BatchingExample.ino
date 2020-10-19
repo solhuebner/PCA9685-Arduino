@@ -9,6 +9,7 @@ PCA9685 pwmController(B010101);         // Library using B010101 (A5-A0) i2c add
 void setup() {
     Serial.begin(115200);               // Begin Serial and Wire interfaces
     Wire.begin();
+    Wire.setClock(pwmController.getI2CSpeed());
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
