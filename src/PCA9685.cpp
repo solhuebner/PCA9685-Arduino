@@ -1041,7 +1041,7 @@ void PCA9685::checkForErrors() {
 PCA9685_ServoEval::PCA9685_ServoEval(uint16_t minPWMAmount, uint16_t maxPWMAmount)
     : _coeff(NULL), _isCSpline(false)
 {
-    minPWMAmount = min(max(minPWMAmount, 0), PCA9685_PWM_FULL);
+    minPWMAmount = min(max(minPWMAmount, (uint16_t)0), PCA9685_PWM_FULL);
     maxPWMAmount = min(max(maxPWMAmount, minPWMAmount), PCA9685_PWM_FULL);
 
     _coeff = new float[2];
@@ -1054,7 +1054,7 @@ PCA9685_ServoEval::PCA9685_ServoEval(uint16_t minPWMAmount, uint16_t maxPWMAmoun
 PCA9685_ServoEval::PCA9685_ServoEval(uint16_t minPWMAmount, uint16_t midPWMAmount, uint16_t maxPWMAmount)
     : _coeff(NULL), _isCSpline(false)
 {
-    minPWMAmount = min(max(minPWMAmount, 0), PCA9685_PWM_FULL);
+    minPWMAmount = min(max(minPWMAmount, (uint16_t)0), PCA9685_PWM_FULL);
     midPWMAmount = min(max(midPWMAmount, minPWMAmount), PCA9685_PWM_FULL);
     maxPWMAmount = min(max(maxPWMAmount, midPWMAmount), PCA9685_PWM_FULL);
 
@@ -1125,7 +1125,7 @@ uint16_t PCA9685_ServoEval::pwmForAngle(float angle) {
         }
     }
 
-    return (uint16_t)min(max((uint16_t)roundf(retVal), 0), PCA9685_PWM_FULL);
+    return (uint16_t)min(max((uint16_t)roundf(retVal), (uint16_t)0), PCA9685_PWM_FULL);
 };
 
 uint16_t PCA9685_ServoEval::pwmForSpeed(float speed) {
