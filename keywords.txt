@@ -1,0 +1,82 @@
+==================================
+CLASS
+==================================
+PCA9685	KEYWORD1
+PCA9685_ServoEval	KEYWORD1
+
+==================================
+FUNCTIONS
+==================================
+resetDevices	KEYWORD2
+init	KEYWORD2
+initAsProxyAddresser	KEYWORD2
+getI2CAddress	KEYWORD2
+getI2CSpeed	KEYWORD2
+getOutputDriverMode	KEYWORD2
+getOutputEnabledMode	KEYWORD2
+getOutputDisabledMode	KEYWORD2
+getChannelUpdateMode	KEYWORD2
+getPhaseBalancer	KEYWORD2
+setUserDelayFuncs	KEYWORD2
+setPWMFrequency	KEYWORD2
+setPWMFreqServo	KEYWORD2
+setChannelOn	KEYWORD2
+setChannelOff	KEYWORD2
+setChannelPWM	KEYWORD2
+setChannelsPWM	KEYWORD2
+setAllChannelsPWM	KEYWORD2
+getChannelPWM	KEYWORD2
+enableAllCallAddress	KEYWORD2
+enableSub1Address	KEYWORD2
+enableSub2Address	KEYWORD2
+enableSub3Address	KEYWORD2
+disableAllCallAddress	KEYWORD2
+disableSub1Address	KEYWORD2
+disableSub2Address	KEYWORD2
+disableSub3Address	KEYWORD2
+enableExtClockLine	KEYWORD2
+getLastI2CError	KEYWORD2
+getWireInterfaceNumber	KEYWORD2
+printModuleInfo	KEYWORD2
+checkForErrors	KEYWORD2
+pwmForAngle	KEYWORD2
+pwmForSpeed	KEYWORD2
+
+==================================
+CONSTANTS
+==================================
+PCA9685_I2C_DEF_ALLCALL_PROXYADR	LITERAL1
+PCA9685_I2C_DEF_SUB1_PROXYADR	LITERAL1
+PCA9685_I2C_DEF_SUB2_PROXYADR	LITERAL1
+PCA9685_I2C_DEF_SUB3_PROXYADR	LITERAL1
+PCA9685_OutputDriverMode_OpenDrain	LITERAL1
+PCA9685_OutputDriverMode_TotemPole	LITERAL1
+PCA9685_OutputDriverMode_Count	LITERAL1
+PCA9685_OutputDriverMode_Undefined	LITERAL1
+PCA9685_OutputEnabledMode_Normal	LITERAL1
+PCA9685_OutputEnabledMode_Inverted	LITERAL1
+PCA9685_OutputEnabledMode_Count	LITERAL1
+PCA9685_OutputEnabledMode_Undefined	LITERAL1
+PCA9685_OutputDisabledMode_Low	LITERAL1
+PCA9685_OutputDisabledMode_High	LITERAL1
+PCA9685_OutputDisabledMode_Floating	LITERAL1
+PCA9685_OutputDisabledMode_Count	LITERAL1
+PCA9685_OutputDisabledMode_Undefined	LITERAL1
+PCA9685_ChannelUpdateMode_AfterStop	LITERAL1
+PCA9685_ChannelUpdateMode_AfterAck	LITERAL1
+PCA9685_ChannelUpdateMode_Count	LITERAL1
+PCA9685_ChannelUpdateMode_Undefined	LITERAL1
+PCA9685_PhaseBalancer_None	LITERAL1
+PCA9685_PhaseBalancer_Linear	LITERAL1
+PCA9685_PhaseBalancer_Dynamic	LITERAL1
+PCA9685_PhaseBalancer_Count	LITERAL1
+PCA9685_PhaseBalancer_Undefined	LITERAL1
+
+==================================
+DATA TYPES
+==================================
+PCA9685_OutputDriverMode	KEYWORD1
+PCA9685_OutputEnabledMode	KEYWORD1
+PCA9685_OutputDisabledMode	KEYWORD1
+PCA9685_ChannelUpdateMode	KEYWORD1
+PCA9685_PhaseBalancer	KEYWORD1
