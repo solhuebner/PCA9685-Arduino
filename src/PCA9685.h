@@ -179,7 +179,7 @@ public:
     // The i2c address should be the value of the A5-A0 pins, as the class handles the
     // module's base i2c address. It should be a value between 0 and 61, which gives a
     // maximum of 62 modules that can be addressed on the same i2c line.
-    // Boards with more than one i2c line (e.g. Due/Mega/etc.) can supply a different
+    // Boards with more than one i2c line (e.g. Due/Teensy/etc.) can supply a different
     // Wire instance, such as Wire1 (using SDA1/SCL1), Wire2 (using SDA2/SCL2), etc.
     // Supported i2c clock speeds are 100kHz, 400kHz (default), and 1000kHz.
     PCA9685(byte i2cAddress = B000000, TwoWire& i2cWire = Wire, uint32_t i2cSpeed = 400000);
