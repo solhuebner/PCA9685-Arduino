@@ -25,7 +25,7 @@ void setup() {
     Wire.begin();
     Wire.setClock(pwmController.getI2CSpeed());
 
-    pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
+    pwmController.init();               // Initializes module using default totem-pole driver mode
 
     pwmController.printModuleInfo();    // Prints module diagnostic information
 }

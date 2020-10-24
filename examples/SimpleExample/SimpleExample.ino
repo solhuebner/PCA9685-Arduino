@@ -11,7 +11,7 @@ void setup() {
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
-    pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
+    pwmController.init();               // Initializes module using default totem-pole driver mode
 
     pwmController.setPWMFrequency(100); // Set PWM freq to 100Hz (default is 200Hz, supports 24Hz to 1526Hz)
 

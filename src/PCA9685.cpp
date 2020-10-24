@@ -290,7 +290,7 @@ byte PCA9685::getI2CAddress() {
     return _i2cAddress;
 }
 
-uint32_t PCA9685::getI2CSpeed() {
+int PCA9685::getI2CSpeed() {
 #ifndef PCA9685_USE_SOFTWARE_I2C
     return _i2cSpeed;
 #else

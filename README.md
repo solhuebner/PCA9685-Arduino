@@ -219,7 +219,7 @@ void setup() {
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
-    pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
+    pwmController.init();               // Initializes module using default totem-pole driver mode
 
     pwmController.setPWMFrequency(100); // Set PWM freq to 100Hz (default is 200Hz, supports 24Hz to 1526Hz)
 
@@ -304,8 +304,8 @@ void setup() {
 
     pwmControllerAll.resetDevices();    // Resets all PCA9685 devices on i2c line
 
-    pwmController1.init();              // Initializes first module using default totem-pole driver mode, and default disabled phase balancer
-    pwmController2.init();              // Initializes second module using default totem-pole driver mode, and default disabled phase balancer
+    pwmController1.init();              // Initializes first module using default totem-pole driver mode
+    pwmController2.init();              // Initializes second module using default totem-pole driver mode
 
     pwmControllerAll.initAsProxyAddresser(); // Initializes 'fake' module as all-call proxy addresser
 
@@ -358,7 +358,7 @@ void setup() {
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
-    pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
+    pwmController.init();               // Initializes module using default totem-pole driver mode
 
     pwmController.setPWMFreqServo();    // 50Hz provides standard 20ms servo phase length
 
@@ -474,7 +474,7 @@ void setup() {
     Wire.begin();
     Wire.setClock(pwmController.getI2CSpeed());
 
-    pwmController.init();               // Initializes module using default totem-pole driver mode, and default disabled phase balancer
+    pwmController.init();               // Initializes module using default totem-pole driver mode
 
     pwmController.printModuleInfo();    // Prints module diagnostic information
 }

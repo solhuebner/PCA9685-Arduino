@@ -228,13 +228,13 @@ public:
     void initAsProxyAddresser();
 
     // Mode accessors
-    byte getI2CAddress();
-    uint32_t getI2CSpeed();
-    PCA9685_OutputDriverMode getOutputDriverMode();
-    PCA9685_OutputEnabledMode getOutputEnabledMode();
-    PCA9685_OutputDisabledMode getOutputDisabledMode();
-    PCA9685_ChannelUpdateMode getChannelUpdateMode();
-    PCA9685_PhaseBalancer getPhaseBalancer();
+    byte getI2CAddress();                                   // i2c address
+    int getI2CSpeed();                                      // i2c clock speed (Hz)
+    PCA9685_OutputDriverMode getOutputDriverMode();         // Output driver mode
+    PCA9685_OutputEnabledMode getOutputEnabledMode();       // Output enabled mode
+    PCA9685_OutputDisabledMode getOutputDisabledMode();     // Output disabled mode
+    PCA9685_ChannelUpdateMode getChannelUpdateMode();       // Channel update mode
+    PCA9685_PhaseBalancer getPhaseBalancer();               // Software phase balancer
 
     typedef void(*UserDelayFunc)(unsigned int);             // Passes delay timeout (where 0 indicates inside long blocking call / yield attempt suggested)
     // Sets user delay functions to call when a delay has to occur for processing to
