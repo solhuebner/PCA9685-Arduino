@@ -382,6 +382,10 @@ void PCA9685::setPWMFreqServo() {
     setPWMFrequency(50);
 }
 
+void PCA9685::setPWMFreqLED() {
+    setPWMFrequency(60);
+}
+
 void PCA9685::setChannelOn(int channel) {
     if (channel < 0 || channel > 15) return;
 

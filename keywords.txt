@@ -20,6 +20,7 @@ getPhaseBalancer	KEYWORD2
 setUserDelayFuncs	KEYWORD2
 setPWMFrequency	KEYWORD2
 setPWMFreqServo	KEYWORD2
+setPWMFreqLED	KEYWORD2
 setChannelOn	KEYWORD2
 setChannelOff	KEYWORD2
 setChannelPWM	KEYWORD2

@@ -39,9 +39,8 @@ void setup() {
 
     pwmController.resetDevices();       // Resets all PCA9685 devices on i2c line
 
-    // Initializes module using software linear phase balancer, and open-drain style driver mode
-    pwmController.init(PCA9685_PhaseBalancer_Linear,
-                       PCA9685_OutputDriverMode_OpenDrain);
+    // Initializes module using software linear phase balancer, and default totem-pole driver mode
+    pwmController.init(PCA9685_PhaseBalancer_Linear);
 
     pwmController.setChannelPWM(0, 2048); // Should see a 50% duty cycle along the 5ms phase width
 }

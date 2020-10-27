@@ -252,6 +252,8 @@ public:
     void setPWMFrequency(float pwmFrequency = 200);
     // Sets standard servo frequency of 50Hz.
     void setPWMFreqServo();
+    // Sets standard LED frequency of 60Hz.
+    void setPWMFreqLED();
 
     // Turns channel either full on or full off
     void setChannelOn(int channel);
